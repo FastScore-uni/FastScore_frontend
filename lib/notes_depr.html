@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://unpkg.com/vexflow/releases/vexflow-debug.js"></script>
+</head>
+<body>
+  <canvas id="canv" width="400" height="200"></canvas>
+  <script>
+    const VF = Vex.Flow;
+    const renderer = new VF.Renderer(document.getElementById("canv"), VF.Renderer.Backends.CANVAS);
+
+    renderer.resize(400, 200);
+    const context = renderer.getContext();
+
+    const stave = new VF.Stave(10, 40, 380);
+    stave.addClef("treble").addTimeSignature("4/4");
+    stave.setContext(context).draw();
+
+    const notes = [
+      new VF.StaveNote({ keys: ["c/4"], duration: "q" }),
+      new VF.StaveNote({ keys: ["d/4"], duration: "q" }),
+      new VF.StaveNote({ keys: ["g/4"], duration: "q" }),
+      new VF.StaveNote({ keys: ["c/5"], duration: "q" }),
+    ];
+
+    const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+    voice.addTickables(notes);
+
+    new VF.Formatter().joinVoices([voice]).format([voice], 300);
+    voice.draw(context, stave);
+  </script>
+</body>
+</html>

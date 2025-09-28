@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VexFlow - przykładowe nuty</title>
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #sheet {
+      display: inline-block;
+      border: 1px solid #ccc;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Przykładowe nuty z VexFlow</h1>
+<div id="sheet"></div>
+
+<script>
+  // Pobieramy obiekt globalny VexFlow
+  const VF = Vex.Flow;
+
+    const div = document.getElementById("sheet");
+    const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+    renderer.resize(500, 200);
+    const context = renderer.getContext();
+
+
+  // Pięciolinia
+  const stave = new VF.Stave(10, 40, 400);
+  stave.addClef("treble").addTimeSignature("4/4");
+  stave.setContext(context).draw();
+
+  // Nuty
+  const notes = [
+    new VF.StaveNote({ keys: ["c/4"], duration: "q" }),
+    new VF.StaveNote({ keys: ["d/4"], duration: "q" }),
+    new VF.StaveNote({ keys: ["e/4"], duration: "q" }),
+    new VF.StaveNote({ keys: ["f/4"], duration: "q" })
+  ];
+
+  // Głos
+  const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+  voice.addTickables(notes);
+
+  // Formatowanie i rysowanie
+  new VF.Formatter().joinVoices([voice]).format([voice], 350);
+  voice.draw(context, stave);
+</script>
+
+</body>
+</html>
