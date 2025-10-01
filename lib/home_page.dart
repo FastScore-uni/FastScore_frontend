@@ -1,5 +1,7 @@
-import 'package:fastscore_frontend/html_viewer.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fastscore_frontend/html_widget.dart';
+
 
 class MusicPage extends StatefulWidget {
   const MusicPage({super.key});
@@ -46,14 +48,7 @@ class _MusicPageState extends State<MusicPage> {
           ),
         ],
       ),
-      // body: WebViewX(
-      //   width: MediaQuery.of(context).size.width,
-      //   height: MediaQuery.of(context).size.height,
-      //   initialContent: _htmlVexflow,
-      //   initialSourceType: SourceType.html,
-      //   onWebViewCreated: (controller) => webviewController = controller,
-      // ),
-      body: HtmlViewer()
+      body: HtmlWidget()
     );
   }
 }
