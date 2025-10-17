@@ -15,7 +15,10 @@ class HtmlWidgetStateWeb extends HtmlWidgetState {
 
   @override
   Future<void> loadHtml() async {
-    htmlContent = await rootBundle.loadString('lib/notes.html');
+    final html = await rootBundle.loadString(pageUrl);
+    final xml = await rootBundle.loadString(musicfileUrl);
+    // wstrzykujemy XML do HTML-a
+    htmlContent = html.replaceFirst('{{MUSICXML_DATA}}', xml);
   }
 
   @override
