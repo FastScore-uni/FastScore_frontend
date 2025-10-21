@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 import 'package:fastscore_frontend/html_widget.dart';
 
 
@@ -25,6 +26,12 @@ class _MusicPageState extends State<MusicPage> {
     debugPrint("Upload recording...");
   }
 
+  void _handleFileDropped(String fileName, List<int> fileData) {
+    setState(() {
+    });
+    debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +55,23 @@ class _MusicPageState extends State<MusicPage> {
           ),
         ],
       ),
-      body: HtmlWidget()
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            FileDropZone(
+              onFileDropped: _handleFileDropped,
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+                child: HtmlWidget()
+            )
+          ],
+        ),
+      ),
     );
   }
 }

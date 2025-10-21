@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_inappwebview: ^6.0.0
+  # webview_flutter: ^4.13.0
+  # webview_flutter_android: ^4.10.2
+  # webview_flutter_wkwebview: ^3.23.1
+  flutter_dropzone: ^4.2.1
 
 
 dev_dependencies:
@@ -60,8 +64,6 @@ flutter:
   uses-material-design: true
   assets:
     - lib/notes.html
-    - assets/score_loader.html
-    - assets/score.musicxml
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
