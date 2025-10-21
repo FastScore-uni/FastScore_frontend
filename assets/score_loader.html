@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.verovio.org/javascript/latest/verovio-toolkit.js"></script>
+</head>
+<body>
+  <div id="notation"></div>
+  <script>
+    const vrvToolkit = new verovio.toolkit();
+    const data = `{{MUSICXML_DATA}}`; // <-- Flutter wstrzyknie tu XML
+    vrvToolkit.loadData(data);
+    document.getElementById('notation').innerHTML = vrvToolkit.renderToSVG(1);
+  </script>
+</body>
+</html>
