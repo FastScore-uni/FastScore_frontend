@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://www.verovio.org/javascript/latest/verovio-toolkit.js"></script>
+  <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js"></script>
 </head>
 <body>
   <div id="notation"></div>
   <script>
-    const vrvToolkit = new verovio.toolkit();
-    const data = `{{MUSICXML_DATA}}`; // <-- Flutter wstrzyknie tu XML
-    vrvToolkit.loadData(data);
-    document.getElementById('notation').innerHTML = vrvToolkit.renderToSVG(1);
+    // Flutter will inject MUSICXML_DATA later
+    const data = `{{MUSICXML_DATA}}`;
+    document.addEventListener("DOMContentLoaded", (event) => {
+      verovio.module.onRuntimeInitialized = () => {
+        let tk = new verovio.toolkit();
+        console.log("Verovio has loaded!");
+
+
+        try {
+          let svg = tk.renderData(data, {});
+          document.getElementById("notation").innerHTML = svg;
+        } catch (err) {
+          console.error("Verovio error:", err);
+        }
+      }
+    });
+
   </script>
 </body>
 </html>

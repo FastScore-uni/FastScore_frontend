@@ -13,6 +13,8 @@ class MusicPage extends StatefulWidget {
 
 class _MusicPageState extends State<MusicPage> {
 
+  final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
+
   void _startRecording() {
     debugPrint("Start recording...");
     // TODO: podłącz pakiet `record` albo `flutter_sound`
@@ -28,6 +30,7 @@ class _MusicPageState extends State<MusicPage> {
 
   void _handleFileDropped(String fileName, List<int> fileData) {
     setState(() {
+      // TODO pobranie pliku z backendu
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
   }
@@ -67,7 +70,7 @@ class _MusicPageState extends State<MusicPage> {
             const SizedBox(height: 20),
 
             Expanded(
-                child: HtmlWidget()
+                child: HtmlWidget(key: htmlWidgetKey)
             )
           ],
         ),
