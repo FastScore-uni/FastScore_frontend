@@ -1,5 +1,8 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 
 typedef FileDroppedCallback = void Function(String fileName, List<int> fileData);
 
@@ -24,11 +27,57 @@ class _FileDropZoneState extends State<FileDropZone> {
     return (baseAlpha * ratio).round().clamp(0, 255);
   }
 
+  bool _validateFileType(String mime) {
+    const allowedTypes = ['audio/mpeg', 'audio/wav'];
+    return allowedTypes.contains(mime);
+  }
+
+  bool _validateFileSize(List<int> fileData){
+    final maxSizeInBytes = 1024 * 1024 * 200;
+    return fileData.length <= maxSizeInBytes;
+  }
+
+  Future<bool?> _validateFileDuration(List<int> fileData) async{
+    final Uint8List uint8Bytes = Uint8List.fromList(fileData);
+    final player = AudioPlayer();
+    await player.setSourceBytes(uint8Bytes);
+    final duration = await player.getDuration();
+    if (duration != null){
+      final seconds = duration.inSeconds;
+      if (seconds <= 3600) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  void _setDefaultMessage(){
+    setState(() {
+      message = 'Przeciągnij i upuść';
+      isHighlighted = false;
+    });
+  }
+
+  void _showValidationError(String errorMessage) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      _setDefaultMessage();
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final int highlightAlpha = _calculateAlpha(colorScheme.primary.alpha, 0.15);
+    final int highlightAlpha = _calculateAlpha((colorScheme.primary.a * 255.0).round() & 0xFF, 0.15);
     final Color highlightColor = colorScheme.primary.withAlpha(highlightAlpha);
 
     final Color borderColor = isHighlighted ? colorScheme.primary : Colors.grey.shade400;
@@ -41,7 +90,7 @@ class _FileDropZoneState extends State<FileDropZone> {
         color: isHighlighted
             ? highlightColor
             : colorScheme.surfaceContainerHighest.withAlpha(
-            _calculateAlpha(colorScheme.surfaceContainerHighest.alpha, 0.3)
+            _calculateAlpha((colorScheme.surfaceContainerHighest.a * 255.0).round() & 0xFF, 0.3)
         ),
 
         borderRadius: BorderRadius.circular(16),
@@ -55,22 +104,43 @@ class _FileDropZoneState extends State<FileDropZone> {
         children: [
           DropzoneView(
             onCreated: (ctrl) => controller = ctrl,
+            onHover: () => setState(() => isHighlighted = true),
+            onLeave: () => setState(() => isHighlighted = false),
             onDropFile: (file) async {
               setState(() {
                 isHighlighted = false;
                 message = 'Wczytywanie pliku...';
               });
+              
+              final mime = await controller.getFileMIME(file);
+              
+              if (!_validateFileType(mime)){
+                _showValidationError('Dozwolone są tylko pliki mp3 oraz wav');
+                return;
+              }
+
 
               final bytes = await controller.getFileData(file);
 
-              widget.onFileDropped(file.name, bytes);
+              if (!_validateFileSize(bytes)){
+                _showValidationError('Plik jest za duży. Maksymalny rozmiar to 200MB');
+                return;
+              }
+
+              final isValid = await _validateFileDuration(bytes);
+              if (isValid == false) {
+                _showValidationError('Utwór trwa za długo. Maksymalny czas trwania to godzina');
+                return;
+              }
+
+              final fileName = await controller.getFilename(file);
+
+              widget.onFileDropped(fileName, bytes);
 
               setState(() {
-                message = 'Plik "${file.name}" wczytany pomyślnie!';
+                message = 'Plik "$fileName" wczytany pomyślnie!';
               });
             },
-            onHover: () => setState(() => isHighlighted = true),
-            onLeave: () => setState(() => isHighlighted = false),
           ),
 
           Center(
