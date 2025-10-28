@@ -22,6 +22,7 @@ class _FileDropZoneState extends State<FileDropZone> {
   late DropzoneViewController controller;
   bool isHighlighted = false;
   String message = 'Przeciągnij i upuść';
+  String? fileName;
 
   int _calculateAlpha(int baseAlpha, double ratio) {
     return (baseAlpha * ratio).round().clamp(0, 255);
@@ -52,14 +53,15 @@ class _FileDropZoneState extends State<FileDropZone> {
   }
 
 
-  void _setDefaultMessage(){
+  void _clearFileState(){
     setState(() {
       message = 'Przeciągnij i upuść';
       isHighlighted = false;
+      fileName = null;
     });
   }
 
-  void _showValidationError(String errorMessage) {
+  void _showErrorNotification(String errorMessage) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -68,7 +70,25 @@ class _FileDropZoneState extends State<FileDropZone> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      _setDefaultMessage();
+    }
+  }
+
+  void _showSuccessNotification(String successMessage) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(successMessage),
+          backgroundColor: Colors.green.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _deleteFile() {
+    if (fileName != null) {
+      _showSuccessNotification('Plik "$fileName" został usunięty.');
+      _clearFileState();
     }
   }
 
@@ -107,6 +127,10 @@ class _FileDropZoneState extends State<FileDropZone> {
             onHover: () => setState(() => isHighlighted = true),
             onLeave: () => setState(() => isHighlighted = false),
             onDropFile: (file) async {
+              if (fileName != null){
+                _showErrorNotification('Pole jest już zajęte. Najpierw usuń obecny plik.');
+                return;
+              }
               setState(() {
                 isHighlighted = false;
                 message = 'Wczytywanie pliku...';
@@ -115,7 +139,8 @@ class _FileDropZoneState extends State<FileDropZone> {
               final mime = await controller.getFileMIME(file);
               
               if (!_validateFileType(mime)){
-                _showValidationError('Dozwolone są tylko pliki mp3 oraz wav');
+                _showErrorNotification('Dozwolone są tylko pliki mp3 oraz wav');
+                _clearFileState();
                 return;
               }
 
@@ -123,22 +148,24 @@ class _FileDropZoneState extends State<FileDropZone> {
               final bytes = await controller.getFileData(file);
 
               if (!_validateFileSize(bytes)){
-                _showValidationError('Plik jest za duży. Maksymalny rozmiar to 200MB');
+                _showErrorNotification('Plik jest za duży. Maksymalny rozmiar to 200MB');
+                _clearFileState();
                 return;
               }
 
               final isValid = await _validateFileDuration(bytes);
               if (isValid == false) {
-                _showValidationError('Utwór trwa za długo. Maksymalny czas trwania to godzina');
+                _showErrorNotification('Utwór trwa za długo. Maksymalny czas trwania to godzina');
+                _clearFileState();
                 return;
               }
 
-              final fileName = await controller.getFilename(file);
+              fileName = await controller.getFilename(file);
 
-              widget.onFileDropped(fileName, bytes);
-
+              widget.onFileDropped(fileName!, bytes);
+              _showSuccessNotification('Pomyślnie wczytano plik $fileName');
               setState(() {
-                message = 'Plik "$fileName" wczytany pomyślnie!';
+                message = fileName!;
               });
             },
           ),
@@ -161,6 +188,7 @@ class _FileDropZoneState extends State<FileDropZone> {
                     style: TextStyle(color: colorScheme.onSurface),
                   ),
                 ),
+                if (message == 'Przeciągnij i upuść')
                 const Text(
                     'Wspierane formaty: mp3, wav',
                     style: TextStyle(fontSize: 10, color: Colors.grey)
@@ -168,6 +196,16 @@ class _FileDropZoneState extends State<FileDropZone> {
               ],
             ),
           ),
+          if (fileName != null)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: IconButton(
+                icon: Icon(Icons.delete_forever, color: colorScheme.error, size: 28),
+                tooltip: 'Usuń wczytany plik',
+                onPressed: _deleteFile,
+              ),
+            ),
         ],
       ),
     );
