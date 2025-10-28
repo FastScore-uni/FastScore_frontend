@@ -20,9 +20,10 @@ class FileDropZone extends StatefulWidget {
 
 class _FileDropZoneState extends State<FileDropZone> {
   late DropzoneViewController controller;
-  bool isHighlighted = false;
-  String message = 'Przeciągnij i upuść';
-  String? fileName;
+  bool _isHighlighted = false;
+  static const String _dragAndDropHint = 'Przeciągnij i upuść';
+  String _message = 'Przeciągnij i upuść';
+  String? _fileName;
 
   int _calculateAlpha(int baseAlpha, double ratio) {
     return (baseAlpha * ratio).round().clamp(0, 255);
@@ -55,9 +56,9 @@ class _FileDropZoneState extends State<FileDropZone> {
 
   void _clearFileState(){
     setState(() {
-      message = 'Przeciągnij i upuść';
-      isHighlighted = false;
-      fileName = null;
+      _message = _dragAndDropHint;
+      _isHighlighted = false;
+      _fileName = null;
     });
   }
 
@@ -86,10 +87,67 @@ class _FileDropZoneState extends State<FileDropZone> {
   }
 
   void _deleteFile() {
-    if (fileName != null) {
-      _showSuccessNotification('Plik "$fileName" został usunięty.');
+    if (_fileName != null) {
+      _showSuccessNotification('Plik "$_fileName" został usunięty.');
       _clearFileState();
     }
+  }
+  Future<void> _processFile(dynamic file) async{
+    setState(() {
+      _isHighlighted = false;
+      _message = 'Wczytywanie pliku...';
+    });
+
+    final mime = await controller.getFileMIME(file);
+
+    if (!_validateFileType(mime)){
+      _showErrorNotification('Dozwolone są tylko pliki mp3 oraz wav');
+      _clearFileState();
+      return;
+    }
+
+
+    final bytes = await controller.getFileData(file);
+
+    if (!_validateFileSize(bytes)){
+      _showErrorNotification('Plik jest za duży. Maksymalny rozmiar to 200MB');
+      _clearFileState();
+      return;
+    }
+
+    final isValid = await _validateFileDuration(bytes);
+    if (isValid == false) {
+      _showErrorNotification('Utwór trwa za długo. Maksymalny czas trwania to godzina');
+      _clearFileState();
+      return;
+    }
+
+    _fileName = await controller.getFilename(file);
+
+    widget.onFileDropped(_fileName!, bytes);
+    _showSuccessNotification('Pomyślnie wczytano plik $_fileName');
+    setState(() {
+      _message = _fileName!;
+    });
+  }
+
+  Future <void> _pickFile() async{
+    if (_fileName != null) {
+      _showErrorNotification('Pole jest już zajęte. Najpierw usuń obecny plik.');
+      return;
+    }
+
+    final List<dynamic> selectedFiles = await controller.pickFiles(
+        multiple: false,
+        mime: ['audio/mpeg', 'audio/wav'],
+    );
+
+    if (selectedFiles.isEmpty){
+      return;
+    }
+    final file = selectedFiles.first;
+
+    _processFile(file);
   }
 
 
@@ -100,14 +158,14 @@ class _FileDropZoneState extends State<FileDropZone> {
     final int highlightAlpha = _calculateAlpha((colorScheme.primary.a * 255.0).round() & 0xFF, 0.15);
     final Color highlightColor = colorScheme.primary.withAlpha(highlightAlpha);
 
-    final Color borderColor = isHighlighted ? colorScheme.primary : Colors.grey.shade400;
+    final Color borderColor = _isHighlighted ? colorScheme.primary : Colors.grey.shade400;
 
     return Container(
-      width: 400,
-      height: 200,
+      width: 600,
+      height: 300,
       margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isHighlighted
+        color: _isHighlighted
             ? highlightColor
             : colorScheme.surfaceContainerHighest.withAlpha(
             _calculateAlpha((colorScheme.surfaceContainerHighest.a * 255.0).round() & 0xFF, 0.3)
@@ -124,49 +182,14 @@ class _FileDropZoneState extends State<FileDropZone> {
         children: [
           DropzoneView(
             onCreated: (ctrl) => controller = ctrl,
-            onHover: () => setState(() => isHighlighted = true),
-            onLeave: () => setState(() => isHighlighted = false),
+            onHover: () => setState(() => _isHighlighted = true),
+            onLeave: () => setState(() => _isHighlighted = false),
             onDropFile: (file) async {
-              if (fileName != null){
+              if (_fileName != null){
                 _showErrorNotification('Pole jest już zajęte. Najpierw usuń obecny plik.');
                 return;
               }
-              setState(() {
-                isHighlighted = false;
-                message = 'Wczytywanie pliku...';
-              });
-              
-              final mime = await controller.getFileMIME(file);
-              
-              if (!_validateFileType(mime)){
-                _showErrorNotification('Dozwolone są tylko pliki mp3 oraz wav');
-                _clearFileState();
-                return;
-              }
-
-
-              final bytes = await controller.getFileData(file);
-
-              if (!_validateFileSize(bytes)){
-                _showErrorNotification('Plik jest za duży. Maksymalny rozmiar to 200MB');
-                _clearFileState();
-                return;
-              }
-
-              final isValid = await _validateFileDuration(bytes);
-              if (isValid == false) {
-                _showErrorNotification('Utwór trwa za długo. Maksymalny czas trwania to godzina');
-                _clearFileState();
-                return;
-              }
-
-              fileName = await controller.getFilename(file);
-
-              widget.onFileDropped(fileName!, bytes);
-              _showSuccessNotification('Pomyślnie wczytano plik $fileName');
-              setState(() {
-                message = fileName!;
-              });
+              _processFile(file);
             },
           ),
 
@@ -183,20 +206,35 @@ class _FileDropZoneState extends State<FileDropZone> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    message,
+                    _message,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: colorScheme.onSurface),
                   ),
                 ),
-                if (message == 'Przeciągnij i upuść')
-                const Text(
-                    'Wspierane formaty: mp3, wav',
-                    style: TextStyle(fontSize: 10, color: Colors.grey)
+                if (_message == _dragAndDropHint)
+                Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _pickFile,
+                      icon: const Icon(Icons.file_open),
+                      label: const Text('Wybierz plik'),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: colorScheme.onPrimary,
+                        backgroundColor: colorScheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
+                if (_message == _dragAndDropHint)
+                  const Text(
+                      'Wspierane formaty: mp3, wav',
+                      style: TextStyle(fontSize: 13, color: Colors.grey)
+                  ),
               ],
             ),
           ),
-          if (fileName != null)
+          if (_fileName != null)
             Positioned(
               top: 10,
               right: 10,
