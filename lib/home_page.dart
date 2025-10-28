@@ -38,6 +38,7 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
+    htmlWidgetKey.currentState?.process(null);
     setState(() {
       // Handle file dropped
     });
