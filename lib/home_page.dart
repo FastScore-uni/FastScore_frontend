@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
-import 'package:fastscore_frontend/html_widget.dart';
+import 'package:fastscore_frontend/widgets/html_widget.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -29,8 +29,8 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
+    htmlWidgetKey.currentState?.process(null);
     setState(() {
-      // TODO pobranie pliku z backendu
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
   }

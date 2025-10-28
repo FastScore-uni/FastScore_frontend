@@ -1,10 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:http/http.dart' as html;
+import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 
@@ -13,15 +12,15 @@ class HtmlWidget extends StatefulWidget {
   const HtmlWidget({super.key});
 
   @override
-  // ignore: no_logic_in_create_state
+  // ignore: no_printic_in_create_state
   State<HtmlWidget> createState() => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux ? HtmlWidgetStateStub() : HtmlWidgetState();
 }
 
 class HtmlWidgetState extends State<HtmlWidget> {
   final String pageUrl = 'assets/score_loader.html';
-  // final String musicfileUrl = 'assets/score.musicxml';
   final String apiUrl = 'http://127.0.0.1:8000/audio-to-xml';
-  String? htmlContent;
+  String htmlContent = '';
+  String? injectedHtmlContent;
 
   String _xmlContent = '';
   bool _loading = false;
@@ -30,15 +29,16 @@ class HtmlWidgetState extends State<HtmlWidget> {
   @override
   void initState() {
     super.initState();
-    process(null);
+    // process(null);
   }
 
+
+
   Future<void> process(File? musicfile) async {
-    _fetchXml(musicfile).then((_) => {
-      if(_error != '') {
-        _loadHtml()
-      }
-    });
+    await _fetchXml(musicfile);
+    if(_error.isEmpty) {
+      _loadHtml();
+    }
   }
 
   Future<void> _fetchXml(File? musicfile) async {
@@ -52,9 +52,9 @@ class HtmlWidgetState extends State<HtmlWidget> {
   // Mockowe dane binarne (np. udawany plik audio)
   final mockData = utf8.encode('Fake audio content');
 
-  final request = html.MultipartRequest('POST', Uri.parse(apiUrl))
+  final request = MultipartRequest('POST', Uri.parse(apiUrl))
     ..files.add(
-      html.MultipartFile.fromBytes(
+      MultipartFile.fromBytes(
         'file',               // nazwa musi być taka sama jak w FastAPI (UploadFile = File(...))
         mockData,
         filename: 'mock.mp3', // dowolna nazwa
@@ -66,11 +66,6 @@ class HtmlWidgetState extends State<HtmlWidget> {
   request.headers['Accept'] = 'application/xml';
 
   final response = await request.send();
-      // final response = await post(
-      //   Uri.parse(apiUrl), // zmień adres jeśli potrzebujesz
-      //   headers: {'Accept': 'application/xml'},
-      //   body: {'file': musicfile},
-      // );
 
       if (response.statusCode == 200) {
         _xmlContent = await response.stream.bytesToString();
@@ -91,12 +86,12 @@ class HtmlWidgetState extends State<HtmlWidget> {
     }
   }
 
-
-
   Future<void> _loadHtml() async {
-    final html = await rootBundle.loadString(pageUrl);
+    if (htmlContent.isEmpty) {
+      htmlContent = await rootBundle.loadString(pageUrl);
+    }
     setState(() {
-      htmlContent = html.replaceFirst('{{MUSICXML_DATA}}', _xmlContent);
+      injectedHtmlContent = htmlContent.replaceFirst('{{MUSICXML_DATA}}', _xmlContent);
     });
   }
 
@@ -111,7 +106,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
               style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 209, 47, 47))
               );
     }
-    if (htmlContent == null) {
+    if (injectedHtmlContent == null) {
       return const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -128,7 +123,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
     }
 
     return InAppWebView(
-      initialData: InAppWebViewInitialData(data: htmlContent!),
+      initialData: InAppWebViewInitialData(data: injectedHtmlContent!),
     );
   }
 }
