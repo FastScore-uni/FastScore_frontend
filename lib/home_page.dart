@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
-import 'package:fastscore_frontend/html_widget.dart';
+import 'package:fastscore_frontend/widgets/html_widget.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -12,6 +12,8 @@ class MusicPage extends StatefulWidget {
 }
 
 class _MusicPageState extends State<MusicPage> {
+
+  final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
 
   void _startRecording() {
     debugPrint("Start recording...");
@@ -27,6 +29,7 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
+    htmlWidgetKey.currentState?.process(null);
     setState(() {
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
@@ -67,7 +70,7 @@ class _MusicPageState extends State<MusicPage> {
             const SizedBox(height: 20),
 
             Expanded(
-                child: HtmlWidget()
+                child: HtmlWidget(key: htmlWidgetKey)
             )
           ],
         ),
