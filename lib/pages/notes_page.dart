@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
-import 'package:fastscore_frontend/html_widget.dart';
+import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/split_button.dart';
 import 'package:fastscore_frontend/widgets/audio_player_bar.dart';
 
@@ -19,6 +19,8 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
+
+  final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
   int _selectedDownloadIndex = 0;
   bool _isPlaying = false;
   
@@ -104,8 +106,10 @@ class _NotesPageState extends State<NotesPage> {
                 Expanded(
                   child: Container(
                     color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: const Center(
-                      child: HtmlWidget(),
+                    child: Center(
+                      child: HtmlWidget(
+                        key: htmlWidgetKey,
+                      ),
                     ),
                   ),
                 ),
