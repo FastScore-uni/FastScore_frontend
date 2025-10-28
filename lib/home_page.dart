@@ -15,6 +15,10 @@ class MusicPage extends StatefulWidget {
 
 class _MusicPageState extends State<MusicPage> {
 
+  void _showNotes() {
+    debugPrint("Show notes...");
+  }
+
   void _startRecording() {
     debugPrint("Start recording...");
     // TODO: podłącz pakiet `record` albo `flutter_sound`
@@ -88,7 +92,7 @@ class _MusicPageState extends State<MusicPage> {
                           // Action buttons
                           FilledButton.icon(
                             onPressed: () {
-                              // Show notes action
+                              _showNotes();// Show notes action
                             },
                             icon: const Icon(Icons.music_note),
                             label: const Text('Wyświetl nuty'),
@@ -114,7 +118,7 @@ class _MusicPageState extends State<MusicPage> {
 
                           FilledButton.icon(
                             onPressed: () {
-                              // Record action
+                              _startRecording();// Record action
                             },
                             icon: const Icon(Icons.mic_sharp),
                             label: const Text('Nagraj utwór teraz'),

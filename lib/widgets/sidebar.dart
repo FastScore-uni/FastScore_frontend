@@ -14,7 +14,7 @@ class AppSidebar extends StatelessWidget {
     
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: sidebarProvider.isOpen ? 100 : 0,
+      width: sidebarProvider.isOpen ? 100 : 56,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         boxShadow: sidebarProvider.isOpen
@@ -27,54 +27,53 @@ class AppSidebar extends StatelessWidget {
               ]
             : null,
       ),
-      child: sidebarProvider.isOpen
-          ? Column(
-              children: [
-                const SizedBox(height: 8),
-                // Burger menu button
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  child: IconButton(
-                    icon: const Icon(Icons.menu),
-                    tooltip: 'Close menu',
-                    onPressed: () => sidebarProvider.close(),
-                  ),
-                
-                ),
-                const SizedBox(height: 16),
-                // Music Page button
-                _SidebarButton(
-                  icon: Icons.file_upload_outlined,
-                  label: 'Wybierz\nplik',
-                  isSelected: currentRoute == '/',
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/');
-                  },
-                ),
-                const SizedBox(height: 8),
-                // My Songs button
-                _SidebarButton(
-                  icon: Icons.music_note_outlined,
-                  label: 'Moje\nutwory',
-                  isSelected: currentRoute == '/my-songs',
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/my-songs');
-                  },
-                ),
-                const Spacer(),
-                // Theme toggle button
-                _SidebarButton(
-                  icon: themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                  label: themeProvider.isDarkMode ? 'Jasny' : 'Ciemny',
-                  isSelected: false,
-                  onPressed: () {
-                    themeProvider.toggleTheme();
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
-            )
-          : null,
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          // Burger menu button - always visible
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: IconButton(
+              icon: const Icon(Icons.menu),
+              tooltip: sidebarProvider.isOpen ? 'Close menu' : 'Open menu',
+              onPressed: () => sidebarProvider.toggle(),
+            ),
+          ),
+          if (sidebarProvider.isOpen) ...[
+            const SizedBox(height: 16),
+            // Music Page button
+            _SidebarButton(
+              icon: Icons.file_upload_outlined,
+              label: 'Wybierz\nplik',
+              isSelected: currentRoute == '/',
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/');
+              },
+            ),
+            const SizedBox(height: 8),
+            // My Songs button
+            _SidebarButton(
+              icon: Icons.music_note_outlined,
+              label: 'Moje\nutwory',
+              isSelected: currentRoute == '/my-songs',
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/my-songs');
+              },
+            ),
+            const Spacer(),
+            // Theme toggle button
+            _SidebarButton(
+              icon: themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              label: themeProvider.isDarkMode ? 'Jasny' : 'Ciemny',
+              isSelected: false,
+              onPressed: () {
+                themeProvider.toggleTheme();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
     );
   }
 }
