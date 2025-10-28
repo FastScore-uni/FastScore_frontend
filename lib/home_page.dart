@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'package:fastscore_frontend/widgets/sidebar.dart';
+import 'package:fastscore_frontend/providers/sidebar_provider.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
-import 'package:fastscore_frontend/html_widget.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -28,49 +30,113 @@ class _MusicPageState extends State<MusicPage> {
 
   void _handleFileDropped(String fileName, List<int> fileData) {
     setState(() {
+      // Handle file dropped
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
   }
 
   @override
   Widget build(BuildContext context) {
+    final sidebarProvider = Provider.of<SidebarProvider>(context);
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Nagrywanie i nutki"),
-        actions: [
-          IconButton(
-            onPressed: _startRecording,
-            icon: const Icon(Icons.play_arrow),
-            tooltip: "Start",
-          ),
-          IconButton(
-            onPressed: _stopRecording,
-            icon: const Icon(Icons.stop),
-            tooltip: "Stop",
-          ),
-          IconButton(
-            onPressed: _uploadRecording,
-            icon: const Icon(Icons.upload_file),
-            tooltip: "Upload",
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      body: Row(
+        children: [
+          const AppSidebar(),
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Title input field
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Nazwa twojego utworu',
+                              hintText: 'Nazwa utworu',
+                              filled: true,
+                              fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () {
+                                  // Clear text field
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // File drop zone card
+                          SizedBox(
+                            height: 250,
+                            child: FileDropZone(
+                              onFileDropped: _handleFileDropped,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          
+                          // Action buttons
+                          FilledButton.icon(
+                            onPressed: () {
+                              // Show notes action
+                            },
+                            icon: const Icon(Icons.music_note),
+                            label: const Text('Wyświetl nuty'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          Text(
+                            'lub',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          FilledButton.icon(
+                            onPressed: () {
+                              // Record action
+                            },
+                            icon: const Icon(Icons.mic_sharp),
+                            label: const Text('Nagraj utwór teraz'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            FileDropZone(
-              onFileDropped: _handleFileDropped,
-            ),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-                child: HtmlWidget()
-            )
-          ],
-        ),
       ),
     );
   }
