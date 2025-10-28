@@ -1,5 +1,6 @@
 import 'package:fastscore_frontend/home_page.dart';
 import 'package:fastscore_frontend/pages/my_songs_page.dart';
+import 'package:fastscore_frontend/pages/notes_page.dart';
 import 'package:fastscore_frontend/theme/theme_provider.dart';
 import 'package:fastscore_frontend/providers/sidebar_provider.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,18 @@ class MyApp extends StatelessWidget {
           routes: {
             '/': (context) => const MusicPage(),
             '/my-songs': (context) => const MySongsPage(),
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name == '/notes') {
+              final args = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute(
+                builder: (context) => NotesPage(
+                  songTitle: args?['title'] ?? 'Utwór bez tytułu',
+                  songId: args?['songId'],
+                ),
+              );
+            }
+            return null;
           },
         );
       },

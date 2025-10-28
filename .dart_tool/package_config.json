@@ -8,6 +8,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "audio_video_progress_bar",
+      "rootUri": "file:///C:/Users/dawle/AppData/Local/Pub/Cache/hosted/pub.dev/audio_video_progress_bar-2.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "audioplayers",
       "rootUri": "file:///C:/Users/dawle/AppData/Local/Pub/Cache/hosted/pub.dev/audioplayers-6.5.1",
       "packageUri": "lib/",

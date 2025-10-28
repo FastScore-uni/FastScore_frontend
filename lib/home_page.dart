@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:fastscore_frontend/widgets/sidebar.dart';
-import 'package:fastscore_frontend/providers/sidebar_provider.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 
 
@@ -14,22 +11,30 @@ class MusicPage extends StatefulWidget {
 }
 
 class _MusicPageState extends State<MusicPage> {
+  final TextEditingController _titleController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
 
   void _showNotes() {
-    debugPrint("Show notes...");
+    final title = _titleController.text.isEmpty 
+        ? 'Utwór bez tytułu' 
+        : _titleController.text;
+    
+    Navigator.of(context).pushNamed(
+      '/notes',
+      arguments: {
+        'title': title,
+      },
+    );
   }
 
   void _startRecording() {
     debugPrint("Start recording...");
     // TODO: podłącz pakiet `record` albo `flutter_sound`
-  }
-
-  void _stopRecording() {
-    debugPrint("Stop recording...");
-  }
-
-  void _uploadRecording() {
-    debugPrint("Upload recording...");
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
@@ -41,8 +46,6 @@ class _MusicPageState extends State<MusicPage> {
 
   @override
   Widget build(BuildContext context) {
-    final sidebarProvider = Provider.of<SidebarProvider>(context);
-    
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       body: Row(
@@ -61,6 +64,7 @@ class _MusicPageState extends State<MusicPage> {
                         children: [
                           // Title input field
                           TextField(
+                            controller: _titleController,
                             decoration: InputDecoration(
                               labelText: 'Nazwa twojego utworu',
                               hintText: 'Nazwa utworu',
@@ -73,7 +77,7 @@ class _MusicPageState extends State<MusicPage> {
                               suffixIcon: IconButton(
                                 icon: const Icon(Icons.close),
                                 onPressed: () {
-                                  // Clear text field
+                                  _titleController.clear();
                                 },
                               ),
                             ),

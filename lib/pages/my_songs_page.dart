@@ -41,7 +41,13 @@ class MySongsPage extends StatelessWidget {
                             color: Colors.green.shade200,
                             isSelected: false,
                             onTap: () {
-                              // Handle tap
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Poranny blask',
+                                  'songId': 'song_1',
+                                },
+                              );
                             },
                           ),
                           SongItem(
@@ -51,6 +57,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'mp3',
                             color: Colors.orange.shade200,
                             isSelected: false,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Taniec liści',
+                                  'songId': 'song_2',
+                                },
+                              );
+                            },
                           ),
                           SongItem(
                             date: '2025-10-02',
@@ -59,6 +74,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'wav',
                             color: Colors.purple.shade200,
                             isSelected: true,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Mglisty poranek',
+                                  'songId': 'song_3',
+                                },
+                              );
+                            },
                           ),
                           SongItem(
                             date: '2025-09-25',
@@ -67,6 +91,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'wav',
                             color: Colors.grey.shade400,
                             isSelected: false,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Jesienny dół',
+                                  'songId': 'song_4',
+                                },
+                              );
+                            },
                           ),
                           SongItem(
                             date: '2025-09-15',
@@ -75,6 +108,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'mp3',
                             color: Colors.lime.shade300,
                             isSelected: false,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Zgasłe gwiazdy',
+                                  'songId': 'song_5',
+                                },
+                              );
+                            },
                           ),
                           SongItem(
                             date: '2025-09-05',
@@ -83,6 +125,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'mp3',
                             color: Colors.yellow.shade200,
                             isSelected: false,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Come by the Hills',
+                                  'songId': 'song_6',
+                                },
+                              );
+                            },
                             // Example with image URL (uncomment to test):
                             // imageUrl: 'https://example.com/album-art.jpg',
                           ),
@@ -93,6 +144,15 @@ class MySongsPage extends StatelessWidget {
                             format: 'wav',
                             color: Colors.cyan.shade200,
                             isSelected: false,
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/notes',
+                                arguments: {
+                                  'title': 'Silent Waves',
+                                  'songId': 'song_7',
+                                },
+                              );
+                            },
                           ),
                         ],
                       ),
