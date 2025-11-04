@@ -1,4 +1,4 @@
-import 'package:fastscore_frontend/xml_loader.dart';
+import 'package:fastscore_frontend/backend_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
@@ -39,7 +39,7 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
-    XmlLoader().setFile(fileName, fileData);
+    BackendService().setAudioFile(fileName, fileData);
     setState(() {
       // Handle file dropped
     });

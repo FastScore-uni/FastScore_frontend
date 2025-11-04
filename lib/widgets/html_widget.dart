@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:fastscore_frontend/xml_loader.dart';
+import 'package:fastscore_frontend/backend_service.dart';
 
 
 class HtmlWidget extends StatefulWidget {
@@ -18,7 +18,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
   String htmlContent = '';
   String? injectedHtmlContent;
 
-  final XmlLoader xmlLoader = XmlLoader();
+  final BackendService backendService = BackendService();
   bool loading = false;
 
   @override
@@ -30,8 +30,8 @@ class HtmlWidgetState extends State<HtmlWidget> {
 
 
   Future<void> process() async {
-    xmlLoader.fetchXml().then((_) {
-      if (xmlLoader.error.isEmpty) {
+    backendService.fetchXml().then((_) {
+      if (backendService.error.isEmpty) {
         _loadHtml();
       }
     });
@@ -45,7 +45,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
       htmlContent = await rootBundle.loadString(pageUrl);
     }
     setState(() {
-      injectedHtmlContent = htmlContent.replaceFirst('{{MUSICXML_DATA}}', xmlLoader.xmlContent);
+      injectedHtmlContent = htmlContent.replaceFirst('{{MUSICXML_DATA}}', backendService.xmlContent);
       loading = false;
     });
   }
@@ -55,9 +55,9 @@ class HtmlWidgetState extends State<HtmlWidget> {
     if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (xmlLoader.error != '') {
+    if (backendService.error != '') {
       return Text(
-              xmlLoader.error,
+              backendService.error,
               style: TextStyle(fontSize: 16, color: const Color.fromARGB(255, 209, 47, 47))
               );
     }
