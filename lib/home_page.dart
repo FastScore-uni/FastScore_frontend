@@ -1,7 +1,7 @@
+import 'package:fastscore_frontend/backend_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
-import 'package:fastscore_frontend/widgets/html_widget.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -12,7 +12,6 @@ class MusicPage extends StatefulWidget {
 }
 
 class _MusicPageState extends State<MusicPage> {
-  final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
   final TextEditingController _titleController = TextEditingController();
 
   @override
@@ -40,7 +39,7 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDropped(String fileName, List<int> fileData) {
-    htmlWidgetKey.currentState?.process(null);
+    BackendService().setAudioFile(fileName, fileData);
     setState(() {
       // Handle file dropped
     });
