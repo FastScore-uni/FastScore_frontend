@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
-import 'package:fastscore_frontend/widgets/audio_recorder.dart';
+import 'package:fastscore_frontend/widgets/recording_panel.dart';
+import 'package:record/record.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -131,7 +132,7 @@ class _MusicPageState extends State<MusicPage> {
                           ),
                           const SizedBox(height: 16),
 
-                          AudioRecorder(
+                          RecordingPanel(
                             onStart: _startRecording,
                             onStop: _stopRecording,
 

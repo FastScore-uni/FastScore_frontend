@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 typedef VoidCallback = void Function();
 typedef DurationFormatter = String Function(Duration duration);
 
-class AudioRecorder extends StatefulWidget {
+class RecordingPanel extends StatefulWidget {
   final VoidCallback onStart;
   final VoidCallback onStop;
   final bool isRecording;
@@ -11,7 +11,7 @@ class AudioRecorder extends StatefulWidget {
   final Duration recordDuration;
   final DurationFormatter formatDuration;
 
-  const AudioRecorder({
+  const RecordingPanel({
     super.key,
     required this.onStart,
     required this.onStop,
@@ -22,11 +22,11 @@ class AudioRecorder extends StatefulWidget {
   });
 
   @override
-  State<AudioRecorder> createState() => _AudioRecorderState();
+  State<RecordingPanel> createState() => _RecordingPanelState();
 
 }
 
-class _AudioRecorderState extends State<AudioRecorder> {
+class _RecordingPanelState extends State<RecordingPanel> {
   final Duration _maxDuration = Duration(hours: 1);
 
 
