@@ -41,6 +41,7 @@ dependencies:
   audioplayers: ^6.5.1
   provider: ^6.1.5+1
   audio_video_progress_bar: ^2.0.3
+  record: ^6.1.2
 
 
 dev_dependencies:

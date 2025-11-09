@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
+import 'package:fastscore_frontend/widgets/audio_recorder.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -14,6 +15,9 @@ class MusicPage extends StatefulWidget {
 class _MusicPageState extends State<MusicPage> {
   final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
   final TextEditingController _titleController = TextEditingController();
+  bool _isRecording = false;
+  Duration _recordDuration = Duration.zero;
+  bool _isDataReady = false;
 
   @override
   void dispose() {
@@ -36,8 +40,20 @@ class _MusicPageState extends State<MusicPage> {
 
   void _startRecording() {
     debugPrint("Start recording...");
+    setState(() {
+      _isRecording = true;
+    });
     // TODO: podłącz pakiet `record` albo `flutter_sound`
   }
+
+  void _stopRecording(){
+    debugPrint("Stop recording...");
+    setState(() {
+      _isRecording = false;
+      _isDataReady = true;
+    });
+  }
+
 
   void _handleFileDropped(String fileName, List<int> fileData) {
     htmlWidgetKey.currentState?.process(null);
@@ -45,6 +61,18 @@ class _MusicPageState extends State<MusicPage> {
       // Handle file dropped
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(d.inMinutes.remainder(60));
+    final seconds = twoDigits(d.inSeconds.remainder(60));
+    final hours = d.inHours;
+
+    if (hours > 0) {
+      return '$hours:$minutes:$seconds';
+    }
+    return '$minutes:$seconds';
   }
 
   @override
@@ -94,41 +122,34 @@ class _MusicPageState extends State<MusicPage> {
                               onFileDropped: _handleFileDropped,
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          
-                          // Action buttons
-                          FilledButton.icon(
-                            onPressed: () {
-                              _showNotes();// Show notes action
-                            },
-                            icon: const Icon(Icons.music_note),
-                            label: const Text('Wyświetl nuty'),
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          
+
                           Text(
-                            'lub',
+                            _isRecording  ? ' ' : 'lub',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 16),
 
+                          AudioRecorder(
+                            onStart: _startRecording,
+                            onStop: _stopRecording,
+
+                            isRecording: _isRecording,
+                            recordDuration: _recordDuration,
+
+                            isDataReady: _isDataReady,
+
+                            formatDuration: _formatDuration,
+                          ),
+                          const SizedBox(height: 24),
+
                           FilledButton.icon(
                             onPressed: () {
-                              _startRecording();// Record action
+                              _showNotes();// Show notes action
                             },
-                            icon: const Icon(Icons.mic_sharp),
-                            label: const Text('Nagraj utwór teraz'),
+                            icon: const Icon(Icons.music_note),
+                            label: const Text('Wyświetl nuty'),
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 32,
