@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:record/record.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/recording_panel.dart';
-import 'package:record/record.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -16,13 +19,22 @@ class MusicPage extends StatefulWidget {
 class _MusicPageState extends State<MusicPage> {
   final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
   final TextEditingController _titleController = TextEditingController();
+
   bool _isRecording = false;
   Duration _recordDuration = Duration.zero;
   bool _isDataReady = false;
 
+  Uint8List? _audioBytes;
+
+  final AudioRecorder _recorder = AudioRecorder();
+  Timer? _timer;
+  final Duration _maxRecordDuration = const Duration(minutes: 10);
+
   @override
   void dispose() {
     _titleController.dispose();
+    _timer?.cancel();
+    _recorder.dispose();
     super.dispose();
   }
 
@@ -39,20 +51,85 @@ class _MusicPageState extends State<MusicPage> {
     );
   }
 
-  void _startRecording() {
-    debugPrint("Start recording...");
-    setState(() {
-      _isRecording = true;
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      setState(() {
+        _recordDuration = _recordDuration + const Duration(seconds: 1);
+      });
+      if (_recordDuration >= _maxRecordDuration) {
+        _stopRecording();
+      }
     });
-    // TODO: podłącz pakiet `record` albo `flutter_sound`
   }
 
-  void _stopRecording(){
-    debugPrint("Stop recording...");
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  Future<void> _startRecording() async {
+    if (_isRecording) return;
+
+    try {
+      if (await _recorder.hasPermission()) {
+        String filePath = '';
+
+        await _recorder.start(
+          const RecordConfig(encoder: AudioEncoder.wav),
+          path: filePath,
+        );
+
+        setState(() {
+          _isRecording = true;
+          _recordDuration = Duration.zero;
+          _isDataReady = false;
+          _audioBytes = null;
+        });
+        _startTimer();
+        debugPrint("Start recording...");
+      } else {
+        debugPrint("Brak uprawnień do mikrofonu.");
+        // TODO: Pokaż błąd użytkownikowi (np. SnackBar)
+      }
+    } catch (e) {
+      debugPrint("Błąd startu nagrywania: $e");
+    }
+  }
+
+
+  Future<void> _stopRecording() async {
+    if (!_isRecording) return;
+
+    _stopTimer();
+    final String? path = await _recorder.stop();
+
+    if (path == null) {
+      setState(() { _isRecording = false; _isDataReady = false; });
+      debugPrint("Nagranie zatrzymane, błąd zapisu pliku.");
+      return;
+    }
+
+    Uint8List? loadedBytes;
+
+    try {
+        final response = await http.get(Uri.parse(path));
+        loadedBytes = response.bodyBytes;
+      }
+      catch (e) {
+      debugPrint("Błąd wczytywania audio do pamięci: $e");
+    }
+
     setState(() {
       _isRecording = false;
-      _isDataReady = true;
+      _audioBytes = loadedBytes;
+      _isDataReady = loadedBytes != null;
     });
+
+    if (_isDataReady) {
+      debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
+      // TODO: Wysłanie danych
+    }
   }
 
 
