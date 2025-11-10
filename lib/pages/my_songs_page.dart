@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:fastscore_frontend/widgets/sidebar.dart';
+import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/song_item.dart';
 
 
@@ -9,30 +9,30 @@ class MySongsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      body: Row(
-        children: [
-          const AppSidebar(),
-          Expanded(
-            child: Column(
-              children: [
-                AppBar(
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-                  elevation: 0,
-                  automaticallyImplyLeading: false,
-                ),
-                Expanded(
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context).copyWith(
-                      dragDevices: {
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.mouse,
-                      },
-                    ),
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      children: [
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
+    return ResponsiveLayout(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+        appBar: isMobile ? null : AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          title: const Text('Moje utwory'),
+        ),
+        body: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+            },
+          ),
+          child: ListView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 16 : 24,
+              vertical: isMobile ? 12 : 16,
+            ),
+            children: [
                       SongItem(
                             date: '2025-10-20',
                             title: 'Poranny blask',
@@ -158,11 +158,6 @@ class MySongsPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+                );
   }
+}
