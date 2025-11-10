@@ -32,64 +32,118 @@ class _RecordingPanelState extends State<RecordingPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final colorScheme = Theme.of(context).colorScheme;
     final progressValue = widget.recordDuration.inSeconds / _maxDuration.inSeconds;
     final onPressedAction = widget.isRecording ? widget.onStop : widget.onStart;
 
     return Container(
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              child: FilledButton.icon(
-                onPressed: onPressedAction,
-                icon: Icon(widget.isRecording ? Icons.stop : Icons.mic_sharp),
-                label: Text(widget.isRecording ? 'Zakończ nagrywanie' :'Rozpocznij nagrywanie'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colorScheme.tertiary,
-                  foregroundColor: colorScheme.onTertiary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
+        border: Border.all(
+          color: colorScheme.outlineVariant,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Recording button
+          FilledButton.icon(
+            onPressed: onPressedAction,
+            icon: Icon(
+              widget.isRecording ? Icons.stop : Icons.mic,
+              size: isMobile ? 20 : 24,
+            ),
+            label: Text(
+              widget.isRecording ? 'Zakończ nagrywanie' : 'Nagraj utwór teraz',
+              style: TextStyle(fontSize: isMobile ? 14 : 16),
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.tertiary,
+              foregroundColor: colorScheme.onTertiary,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 32,
+                vertical: isMobile ? 14 : 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
             ),
-           ),
-            const SizedBox(height: 30),
+          ),
+          
+          // Show progress only when recording or data is ready
+          if (widget.isRecording || widget.isDataReady) ...[
+            SizedBox(height: isMobile ? 16 : 20),
+            
+            // Progress bar row
             Row(
               children: [
-                // IconButton(
-                //     onPressed: (){/* TODO: */},
-                //     icon: Icon(widget.isRecording ? Icons.pause_circle : Icons.play_circle),
-                //     color: colorScheme.tertiary,
-                //     iconSize: 30,
-                // ),
-                // const SizedBox(width: 8),
+                // Current time
                 Text(
                   widget.isRecording ? widget.formatDuration(widget.recordDuration) : '00:00',
-                  style: TextStyle(color: colorScheme.onSurface),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontSize: isMobile ? 13 : 14,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
                 ),
+                
+                // Progress bar
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 16),
                     child: LinearProgressIndicator(
                       value: progressValue,
-                      minHeight: 4,
+                      minHeight: isMobile ? 3 : 4,
                       backgroundColor: colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(colorScheme.tertiary),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-                Text(widget.formatDuration(_maxDuration), style: TextStyle(color: Colors.grey.shade700)),
+                
+                // Max duration
+                Text(
+                  widget.formatDuration(_maxDuration),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: isMobile ? 13 : 14,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                ),
               ],
-            )
+            ),
+            
+            // Status indicator
+            if (widget.isDataReady && !widget.isRecording) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: colorScheme.tertiary,
+                    size: isMobile ? 16 : 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Nagranie gotowe do wysłania',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: isMobile ? 12 : 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ),
-      );
-    }
+        ],
+      ),
+    );
   }
+}
