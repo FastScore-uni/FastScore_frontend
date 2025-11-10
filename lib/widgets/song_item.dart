@@ -26,8 +26,10 @@ class SongItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: isMobile ? 8 : 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: isSelected
@@ -36,20 +38,20 @@ class SongItem extends StatelessWidget {
                 width: 2,
               )
             : null,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap ?? () {},
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(isMobile ? 12 : 16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             child: Row(
               children: [
                 // Avatar/Icon - can be color circle or image
-                _buildAvatar(),
-                const SizedBox(width: 16),
+                _buildAvatar(isMobile),
+                SizedBox(width: isMobile ? 12 : 16),
                 // Song details
                 Expanded(
                   child: Column(
@@ -59,21 +61,25 @@ class SongItem extends StatelessWidget {
                         date,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
+                          fontSize: isMobile ? 11 : 12,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isMobile ? 2 : 4),
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w500,
+                          fontSize: isMobile ? 14 : 16,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isMobile ? 2 : 4),
                       Text(
                         duration,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: isMobile ? 13 : 14,
                         ),
                       ),
                     ],
@@ -81,15 +87,19 @@ class SongItem extends StatelessWidget {
                 ),
                 // Format badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 8 : 12,
+                    vertical: isMobile ? 3 : 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
                   ),
                   child: Text(
                     format,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w500,
+                      fontSize: isMobile ? 11 : 12,
                     ),
                   ),
                 ),
@@ -101,10 +111,11 @@ class SongItem extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar([bool isMobile = false]) {
+    final size = isMobile ? 48.0 : 56.0;
     return Container(
-      width: 56,
-      height: 56,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: color ?? Colors.grey.shade300,
         shape: BoxShape.circle,

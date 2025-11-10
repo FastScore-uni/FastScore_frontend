@@ -71,12 +71,13 @@ class _SplitButtonState extends State<SplitButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isMobile = MediaQuery.of(context).size.width < 600;
     
     return Container(
-      height: 48,
+      height: isMobile ? 44 : 48,
       decoration: BoxDecoration(
         color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(isMobile ? 22 : 24),
       ),
       child: Row(
         key: _buttonKey,
@@ -87,25 +88,29 @@ class _SplitButtonState extends State<SplitButton> {
             color: Colors.transparent,
             child: InkWell(
               onTap: widget.onPressed,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(isMobile ? 22 : 24),
+                bottomLeft: Radius.circular(isMobile ? 22 : 24),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 12 : 16,
+                  vertical: isMobile ? 10 : 12,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       widget.icon,
-                      size: 20,
+                      size: isMobile ? 18 : 20,
                       color: theme.colorScheme.onPrimary,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: isMobile ? 6 : 8),
                     Text(
                       widget.label,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
                         color: theme.colorScheme.onPrimary,
+                        fontSize: isMobile ? 13 : 14,
                       ),
                     ),
                   ],
@@ -116,7 +121,7 @@ class _SplitButtonState extends State<SplitButton> {
           // Divider line
           Container(
             width: 1,
-            height: 24,
+            height: isMobile ? 20 : 24,
             color: theme.colorScheme.onPrimary.withOpacity(0.3),
           ),
           // Dropdown button
@@ -124,15 +129,18 @@ class _SplitButtonState extends State<SplitButton> {
             color: Colors.transparent,
             child: InkWell(
               onTap: _showMenu,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(24),
-                bottomRight: Radius.circular(24),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(isMobile ? 22 : 24),
+                bottomRight: Radius.circular(isMobile ? 22 : 24),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 10 : 12,
+                  vertical: isMobile ? 10 : 12,
+                ),
                 child: Icon(
                   Icons.arrow_drop_down,
-                  size: 24,
+                  size: isMobile ? 20 : 24,
                   color: theme.colorScheme.onPrimary,
                 ),
               ),

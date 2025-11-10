@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fastscore_frontend/widgets/sidebar.dart';
+import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/split_button.dart';
 import 'package:fastscore_frontend/widgets/audio_player_bar.dart';
@@ -44,20 +44,23 @@ class _NotesPageState extends State<NotesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      body: Row(
-        children: [
-          const AppSidebar(),
-          Expanded(
-            child: Column(
-              children: [
-                // Top bar with title and actions
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    border: Border(
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
+    return ResponsiveLayout(
+      showNavigation: false,
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+        body: Column(
+          children: [
+            // Top bar with title and actions
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 24,
+                vertical: isMobile ? 12 : 16,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
                       bottom: BorderSide(
                         color: Theme.of(context).colorScheme.outlineVariant,
                         width: 1,
@@ -123,8 +126,6 @@ class _NotesPageState extends State<NotesPage> {
               ],
             ),
           ),
-        ],
-      ),
-    );
+        );
   }
 }
