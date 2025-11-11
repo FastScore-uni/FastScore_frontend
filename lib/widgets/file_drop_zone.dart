@@ -193,8 +193,16 @@ class _FileDropZoneState extends State<FileDropZone> {
           children: [
             DropzoneView(
               onCreated: (ctrl) => controller = ctrl,
-              onHover: () => setState(() => _isHighlighted = true),
-              onLeave: () => setState(() => _isHighlighted = false),
+              onHover: () => {
+                if (!widget.isBlocked) {
+                  setState(() => _isHighlighted = true),
+                }
+              },
+              onLeave: () => {
+                if (!widget.isBlocked) {
+                  setState(() => _isHighlighted = false),
+                }
+              },
               onDropFile: (file) async {
                 if (widget.isBlocked) {
                   _showErrorNotification('Strefa upuszczania jest zablokowana, gdy włączone jest nagrywanie.');
