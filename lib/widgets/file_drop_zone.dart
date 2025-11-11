@@ -5,13 +5,18 @@ import 'package:audioplayers/audioplayers.dart';
 
 
 typedef FileDroppedCallback = void Function(String fileName, List<int> fileData);
+typedef FileDeletedCallback = void Function();
 
 class FileDropZone extends StatefulWidget {
   final FileDroppedCallback onFileDropped;
+  final bool isBlocked;
+  final FileDeletedCallback? onFileDeleted;
 
   const FileDropZone({
     super.key,
     required this.onFileDropped,
+    this.isBlocked = false,
+    this.onFileDeleted,
   });
 
   @override
@@ -90,6 +95,10 @@ class _FileDropZoneState extends State<FileDropZone> {
     if (_fileName != null) {
       _showSuccessNotification('Plik "$_fileName" został usunięty.');
       _clearFileState();
+
+      if (widget.onFileDeleted != null) {
+        widget.onFileDeleted!();
+      }
     }
   }
   Future<void> _processFile(dynamic file) async{
@@ -160,91 +169,106 @@ class _FileDropZoneState extends State<FileDropZone> {
 
     final Color borderColor = _isHighlighted ? colorScheme.primary : Colors.grey.shade400;
 
-    return Container(
-      width: 600,
-      height: 300,
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _isHighlighted
-            ? highlightColor
-            : colorScheme.surfaceContainerHighest.withAlpha(
-            _calculateAlpha((colorScheme.surfaceContainerHighest.a * 255.0).round() & 0xFF, 0.3)
-        ),
-
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-          style: BorderStyle.solid,
-        ),
-      ),
-      child: Stack(
-        children: [
-          DropzoneView(
-            onCreated: (ctrl) => controller = ctrl,
-            onHover: () => setState(() => _isHighlighted = true),
-            onLeave: () => setState(() => _isHighlighted = false),
-            onDropFile: (file) async {
-              if (_fileName != null){
-                _showErrorNotification('Pole jest już zajęte. Najpierw usuń obecny plik.');
-                return;
-              }
-              _processFile(file);
-            },
+    return IgnorePointer(
+      ignoring: widget.isBlocked,
+      child: Container(
+        width: 600,
+        height: 300,
+        margin: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: _isHighlighted
+              ? highlightColor
+              : colorScheme.surfaceContainerHighest.withAlpha(
+              _calculateAlpha((colorScheme.surfaceContainerHighest.a * 255.0).round() & 0xFF, 0.3)
           ),
 
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.insert_drive_file_outlined,
-                  size: 50,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    _message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: colorScheme.onSurface),
-                  ),
-                ),
-                if (_message == _dragAndDropHint)
-                Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: _pickFile,
-                      icon: const Icon(Icons.file_open),
-                      label: const Text('Wybierz plik'),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: colorScheme.onPrimary,
-                        backgroundColor: colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                if (_message == _dragAndDropHint)
-                  const Text(
-                      'Wspierane formaty: mp3, wav',
-                      style: TextStyle(fontSize: 13, color: Colors.grey)
-                  ),
-              ],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: borderColor,
+            width: 2,
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Stack(
+          children: [
+            DropzoneView(
+              onCreated: (ctrl) => controller = ctrl,
+              onHover: () => {
+                if (!widget.isBlocked) {
+                  setState(() => _isHighlighted = true),
+                }
+              },
+              onLeave: () => {
+                if (!widget.isBlocked) {
+                  setState(() => _isHighlighted = false),
+                }
+              },
+              onDropFile: (file) async {
+                if (widget.isBlocked) {
+                  _showErrorNotification('Strefa upuszczania jest zablokowana, gdy włączone jest nagrywanie.');
+                  return;
+                }
+                if (_fileName != null){
+                  _showErrorNotification('Pole jest już zajęte. Najpierw usuń obecny plik.');
+                  return;
+                }
+                _processFile(file);
+              },
             ),
-          ),
-          if (_fileName != null)
-            Positioned(
-              top: 10,
-              right: 10,
-              child: IconButton(
-                icon: Icon(Icons.delete_forever, color: colorScheme.error, size: 28),
-                tooltip: 'Usuń wczytany plik',
-                onPressed: _deleteFile,
+
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.insert_drive_file_outlined,
+                    size: 50,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      _message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
+                  ),
+                  if (_message == _dragAndDropHint)
+                  Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: _pickFile,
+                        icon: const Icon(Icons.file_open),
+                        label: const Text('Wybierz plik'),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: colorScheme.onPrimary,
+                          backgroundColor: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_message == _dragAndDropHint)
+                    const Text(
+                        'Wspierane formaty: mp3, wav',
+                        style: TextStyle(fontSize: 13, color: Colors.grey)
+                    ),
+                ],
               ),
             ),
-        ],
+            if (_fileName != null)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: IconButton(
+                  icon: Icon(Icons.delete_forever, color: colorScheme.error, size: 28),
+                  tooltip: 'Usuń wczytany plik',
+                  onPressed: _deleteFile,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
