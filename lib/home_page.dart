@@ -23,6 +23,7 @@ class _MusicPageState extends State<MusicPage> {
   bool _isPaused = false;
   Duration _recordDuration = Duration.zero;
   bool _isDataReady = false;
+  bool _isFileDropped = false;
 
   Uint8List? _audioBytes;
 
@@ -70,6 +71,20 @@ class _MusicPageState extends State<MusicPage> {
 
   Future<void> _startRecording() async {
     if (_isRecording) return;
+    if (_isFileDropped){
+      setState(() {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Nie można rozpocząć nagrywania, gdy upuszczony został plik'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
+      return;
+    }
 
     try {
       if (await _recorder.hasPermission()) {
@@ -91,16 +106,15 @@ class _MusicPageState extends State<MusicPage> {
         debugPrint("Start recording...");
       } else {
         debugPrint("Brak uprawnień do mikrofonu.");
-        if (!mounted) {
-          return;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Brak uprawnień do mikrofonu'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Brak uprawnień do mikrofonu'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       }
     } catch (e) {
       debugPrint("Błąd startu nagrywania: $e");
@@ -179,7 +193,7 @@ class _MusicPageState extends State<MusicPage> {
   void _handleFileDropped(String fileName, List<int> fileData) {
     BackendService().setAudioFile(fileName, fileData);
     setState(() {
-      // Handle file dropped
+      _isFileDropped = true;
     });
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
   }
@@ -196,10 +210,15 @@ class _MusicPageState extends State<MusicPage> {
     return '$minutes:$seconds';
   }
 
+  void _handleFileDeleted() {
+    setState(() {
+      _isFileDropped = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    
     return ResponsiveLayout(
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -239,6 +258,8 @@ class _MusicPageState extends State<MusicPage> {
                     height: isMobile ? 200 : 250,
                     child: FileDropZone(
                       onFileDropped: _handleFileDropped,
+                      onFileDeleted: _handleFileDeleted,
+                      isBlocked: _isRecording || _isDataReady,
                     ),
                   ),
 
