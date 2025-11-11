@@ -4,10 +4,8 @@ import 'package:record/record.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
-import 'package:fastscore_frontend/widgets/sidebar.dart';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
-import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/recording_panel.dart';
 
 
@@ -22,6 +20,7 @@ class _MusicPageState extends State<MusicPage> {
   final TextEditingController _titleController = TextEditingController();
 
   bool _isRecording = false;
+  bool _isPaused = false;
   Duration _recordDuration = Duration.zero;
   bool _isDataReady = false;
 
@@ -86,12 +85,22 @@ class _MusicPageState extends State<MusicPage> {
           _recordDuration = Duration.zero;
           _isDataReady = false;
           _audioBytes = null;
+          _isPaused = false;
         });
         _startTimer();
         debugPrint("Start recording...");
       } else {
         debugPrint("Brak uprawnień do mikrofonu.");
-        // TODO: Pokaż błąd użytkownikowi (np. SnackBar)
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Brak uprawnień do mikrofonu'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       debugPrint("Błąd startu nagrywania: $e");
@@ -125,11 +134,44 @@ class _MusicPageState extends State<MusicPage> {
       _isRecording = false;
       _audioBytes = loadedBytes;
       _isDataReady = loadedBytes != null;
+      _isPaused = false;
     });
 
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
       // TODO: Wysłanie danych
+    }
+  }
+
+  Future<void> _pauseRecording() async {
+    if (_isPaused) return;
+
+    try {
+      await _recorder.pause();
+      _stopTimer();
+
+      setState(() {
+        _isPaused = true;
+      });
+      debugPrint("Pauzowanie nagrywania...");
+    } catch (e) {
+      debugPrint("Błąd pauzowania nagrywania: $e");
+    }
+  }
+
+  Future<void> _resumeRecording() async {
+    if (!_isPaused) return;
+
+    try {
+      await _recorder.resume();
+      _startTimer();
+
+      setState(() {
+        _isPaused = false;
+      });
+      debugPrint("Wznawianie nagrywania...");
+    } catch (e) {
+      debugPrint("Błąd wznawiania nagrywania: $e");
     }
   }
 
@@ -199,8 +241,31 @@ class _MusicPageState extends State<MusicPage> {
                       onFileDropped: _handleFileDropped,
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  
+
+                  Text(
+                    'lub',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  RecordingPanel(
+                            onStart: _startRecording,
+                            onStop: _stopRecording,
+                            onPause: _pauseRecording,
+                            onResume: _resumeRecording,
+
+                            isRecording: _isRecording,
+                            isPaused: _isPaused,
+                            recordDuration: _recordDuration,
+
+                            isDataReady: _isDataReady,
+
+                            formatDuration: _formatDuration,
+                  ),
+                  SizedBox(height: isMobile ? 24 : 48),
+
                   // Action buttons
                   FilledButton.icon(
                     onPressed: () {
@@ -219,27 +284,6 @@ class _MusicPageState extends State<MusicPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
-                  Text(
-                    'lub',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  RecordingPanel(
-                            onStart: _startRecording,
-                            onStop: _stopRecording,
-
-                            isRecording: _isRecording,
-                            recordDuration: _recordDuration,
-
-                            isDataReady: _isDataReady,
-
-                            formatDuration: _formatDuration,
-                  ),
-                  SizedBox(height: isMobile ? 24 : 48),
                 ],
               ),
             ),

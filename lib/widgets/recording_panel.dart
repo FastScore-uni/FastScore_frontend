@@ -6,7 +6,10 @@ typedef DurationFormatter = String Function(Duration duration);
 class RecordingPanel extends StatefulWidget {
   final VoidCallback onStart;
   final VoidCallback onStop;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
   final bool isRecording;
+  final bool isPaused;
   final bool isDataReady;
   final Duration recordDuration;
   final DurationFormatter formatDuration;
@@ -15,7 +18,10 @@ class RecordingPanel extends StatefulWidget {
     super.key,
     required this.onStart,
     required this.onStop,
+    required this.onPause,
+    required this.onResume,
     required this.isRecording,
+    required this.isPaused,
     required this.recordDuration,
     required this.formatDuration,
     required this.isDataReady,
@@ -83,6 +89,10 @@ class _RecordingPanelState extends State<RecordingPanel> {
             Row(
               children: [
                 // Current time
+                IconButton(
+                    onPressed: widget.isPaused ? widget.onResume : widget.onPause,
+                    icon: Icon(widget.isPaused ? Icons.play_circle : Icons.pause_circle),
+                ),
                 Text(
                   widget.isRecording ? widget.formatDuration(widget.recordDuration) : '00:00',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
