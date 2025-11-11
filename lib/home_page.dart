@@ -139,7 +139,7 @@ class _MusicPageState extends State<MusicPage> {
 
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
-      // TODO: Wysłanie danych
+      BackendService().setAudioFile('recording.wav', _audioBytes!);
     }
   }
 
