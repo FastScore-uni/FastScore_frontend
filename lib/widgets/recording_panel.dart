@@ -8,6 +8,7 @@ class RecordingPanel extends StatefulWidget {
   final VoidCallback onStop;
   final VoidCallback onPause;
   final VoidCallback onResume;
+  final VoidCallback? onReset;
   final bool isRecording;
   final bool isPaused;
   final bool isDataReady;
@@ -20,6 +21,7 @@ class RecordingPanel extends StatefulWidget {
     required this.onStop,
     required this.onPause,
     required this.onResume,
+    required this.onReset,
     required this.isRecording,
     required this.isPaused,
     required this.recordDuration,
@@ -92,6 +94,9 @@ class _RecordingPanelState extends State<RecordingPanel> {
                 IconButton(
                     onPressed: widget.isPaused ? widget.onResume : widget.onPause,
                     icon: Icon(widget.isPaused ? Icons.play_circle : Icons.pause_circle),
+                    highlightColor: colorScheme.onTertiary,
+                    color: colorScheme.tertiary,
+                    iconSize: isMobile ? 20 : 32,
                 ),
                 Text(
                   widget.isRecording ? widget.formatDuration(widget.recordDuration) : '00:00',
@@ -148,6 +153,25 @@ class _RecordingPanelState extends State<RecordingPanel> {
                       ),
                     ),
                   ),
+                  FilledButton.icon(
+                    onPressed: widget.onReset,
+                    icon: Icon(Icons.restart_alt),
+                    label: Text(
+                      'Zacznij od nowa',
+                      style: TextStyle(fontSize: isMobile ? 14 : 16),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.secondary,
+                      foregroundColor: colorScheme.onSecondary,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 32,
+                        vertical: isMobile ? 14 : 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ],

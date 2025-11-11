@@ -189,6 +189,20 @@ class _MusicPageState extends State<MusicPage> {
     }
   }
 
+  void _resetRecording() {
+    _stopTimer();
+    _recorder.stop();
+
+    setState(() {
+      _isRecording = false;
+      _isPaused = false;
+      _recordDuration = Duration.zero;
+      _isDataReady = false;
+      _audioBytes = null;
+      _titleController.clear();
+    });
+  }
+
 
   void _handleFileDropped(String fileName, List<int> fileData) {
     BackendService().setAudioFile(fileName, fileData);
@@ -276,6 +290,7 @@ class _MusicPageState extends State<MusicPage> {
                             onStop: _stopRecording,
                             onPause: _pauseRecording,
                             onResume: _resumeRecording,
+                            onReset: _resetRecording,
 
                             isRecording: _isRecording,
                             isPaused: _isPaused,
