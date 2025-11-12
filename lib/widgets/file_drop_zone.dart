@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:mime/mime.dart';
 
 
 typedef FileDroppedCallback = void Function(String fileName, List<int> fileData);
@@ -33,10 +34,13 @@ class _FileDropZoneState extends State<FileDropZone> {
   int _calculateAlpha(int baseAlpha, double ratio) {
     return (baseAlpha * ratio).round().clamp(0, 255);
   }
+  
+  bool _validateFileType(List<int> fileData){
+    final headerBytes = fileData.take(12).toList();
+    final mimeType = lookupMimeType('', headerBytes: headerBytes);
 
-  bool _validateFileType(String mime) {
-    const allowedTypes = ['audio/mpeg', 'audio/wav'];
-    return allowedTypes.contains(mime);
+    return mimeType == 'audio/mp3' || mimeType == 'audio/mpeg' ||
+    mimeType == 'audio/wav' || mimeType == 'audio/x-wav';
   }
 
   bool _validateFileSize(List<int> fileData){
@@ -107,16 +111,14 @@ class _FileDropZoneState extends State<FileDropZone> {
       _message = 'Wczytywanie pliku...';
     });
 
-    final mime = await controller.getFileMIME(file);
+    final bytes = await controller.getFileData(file);
 
-    if (!_validateFileType(mime)){
+    if (!_validateFileType(bytes)){
       _showErrorNotification('Dozwolone są tylko pliki mp3 oraz wav');
       _clearFileState();
       return;
     }
 
-
-    final bytes = await controller.getFileData(file);
 
     if (!_validateFileSize(bytes)){
       _showErrorNotification('Plik jest za duży. Maksymalny rozmiar to 200MB');
