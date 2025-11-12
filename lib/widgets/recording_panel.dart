@@ -86,7 +86,7 @@ class _RecordingPanelState extends State<RecordingPanel> {
           // Show progress only when recording or data is ready
           if (widget.isRecording || widget.isDataReady) ...[
             SizedBox(height: isMobile ? 16 : 20),
-            
+
             // Progress bar row
             Row(
               children: [
@@ -155,9 +155,9 @@ class _RecordingPanelState extends State<RecordingPanel> {
                   ),
                   FilledButton.icon(
                     onPressed: widget.onReset,
-                    icon: Icon(Icons.restart_alt),
+                    icon: Icon(Icons.delete),
                     label: Text(
-                      'Zacznij od nowa',
+                      'Usuń nagranie',
                       style: TextStyle(fontSize: isMobile ? 14 : 16),
                     ),
                     style: FilledButton.styleFrom(
