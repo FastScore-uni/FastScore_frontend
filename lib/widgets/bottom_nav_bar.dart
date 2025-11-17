@@ -44,6 +44,14 @@ class AppBottomNavBar extends StatelessWidget {
                 },
               ),
               _BottomNavButton(
+                icon: Icons.person,
+                label: 'Moje konto',
+                isSelected: currentRoute == '/auth',
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/auth');
+                },
+              ),
+              _BottomNavButton(
                 icon: themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                 label: themeProvider.isDarkMode ? 'Jasny' : 'Ciemny',
                 isSelected: false,
