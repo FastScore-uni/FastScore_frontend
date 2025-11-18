@@ -15,11 +15,14 @@ class BackendService {
 
   String audioFileName = '';
   List<int> audioFileData = [];
-
+  bool unfetchedData = false;
   String xmlContent = '';
   String error = '';
 
   Future<void> fetchXml() async {
+    if(!unfetchedData) {
+      return;
+    }
     try { 
       final request = MultipartRequest('POST', Uri.parse(apiUrl))
         ..files.add(
@@ -36,6 +39,7 @@ class BackendService {
 
       if (response.statusCode == 200) {
         xmlContent = await response.stream.bytesToString();
+        unfetchedData = false;
       } else {
         error = 'Błąd: ${response.statusCode}';
       }
@@ -47,5 +51,6 @@ class BackendService {
   void setAudioFile(String fileName, List<int> fileData) {
     audioFileName = fileName;
     audioFileData = fileData;
+    unfetchedData = true;
   }
 }

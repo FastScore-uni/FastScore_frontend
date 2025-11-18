@@ -27,16 +27,14 @@ class HtmlWidgetState extends State<HtmlWidget> {
     process();
   }
 
-
-
   Future<void> process() async {
+    setState(() {
+      loading = true;
+    });
     backendService.fetchXml().then((_) {
       if (backendService.error.isEmpty) {
         _loadHtml();
       }
-    });
-    setState(() {
-      loading = true;
     });
   }
 
