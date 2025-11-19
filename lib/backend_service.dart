@@ -11,7 +11,7 @@ class BackendService {
     return _instance;
   }
 
-  final String apiUrl = 'https://us-central1-fastscore-b82f4.cloudfunctions.net/audio_to_xml';
+  final String apiUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
 
   String audioFileName = '';
   List<int> audioFileData = [];
