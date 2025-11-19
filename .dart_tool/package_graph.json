@@ -12,6 +12,8 @@
         "cloud_firestore",
         "cupertino_icons",
         "firebase_auth",
+        "firebase_core",
+        "firebase_storage",
         "flutter",
         "flutter_dropzone",
         "flutter_inappwebview",
@@ -49,6 +51,27 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "firebase_core",
+      "version": "4.2.1",
+      "dependencies": [
+        "firebase_core_platform_interface",
+        "firebase_core_web",
+        "flutter",
+        "meta"
+      ]
+    },
+    {
+      "name": "firebase_storage",
+      "version": "13.0.4",
+      "dependencies": [
+        "firebase_core",
+        "firebase_core_platform_interface",
+        "firebase_storage_platform_interface",
+        "firebase_storage_web",
+        "flutter"
       ]
     },
     {
@@ -288,6 +311,17 @@
       ]
     },
     {
+      "name": "firebase_core_web",
+      "version": "3.3.0",
+      "dependencies": [
+        "firebase_core_platform_interface",
+        "flutter",
+        "flutter_web_plugins",
+        "meta",
+        "web"
+      ]
+    },
+    {
       "name": "firebase_core_platform_interface",
       "version": "6.0.2",
       "dependencies": [
@@ -299,13 +333,31 @@
       ]
     },
     {
-      "name": "firebase_core",
-      "version": "4.2.1",
+      "name": "firebase_storage_web",
+      "version": "3.11.0",
       "dependencies": [
-        "firebase_core_platform_interface",
+        "_flutterfire_internals",
+        "async",
+        "firebase_core",
         "firebase_core_web",
+        "firebase_storage_platform_interface",
         "flutter",
-        "meta"
+        "flutter_web_plugins",
+        "http",
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "firebase_storage_platform_interface",
+      "version": "5.2.15",
+      "dependencies": [
+        "_flutterfire_internals",
+        "collection",
+        "firebase_core",
+        "flutter",
+        "meta",
+        "plugin_platform_interface"
       ]
     },
     {
@@ -702,28 +754,17 @@
       ]
     },
     {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
-      "dependencies": [
-        "meta"
-      ]
-    },
-    {
-      "name": "firebase_core_web",
-      "version": "3.3.0",
-      "dependencies": [
-        "firebase_core_platform_interface",
-        "flutter",
-        "flutter_web_plugins",
-        "meta",
-        "web"
-      ]
-    },
-    {
       "name": "flutter_web_plugins",
       "version": "0.0.0",
       "dependencies": [
         "flutter"
+      ]
+    },
+    {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
       ]
     },
     {
