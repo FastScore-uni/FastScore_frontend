@@ -72,15 +72,13 @@ class PieceModel {
   final String id;
   final String name;
   final String xmlUrl;
-  final String midiUrl;
-  final String audioUrl;
+  final String createdAt;
 
   PieceModel({
     required this.id,
     required this.name,
     required this.xmlUrl,
-    required this.midiUrl,
-    required this.audioUrl,
+    required this.createdAt,
   });
 
   factory PieceModel.fromJson(String id, Map<String, dynamic> json) {
@@ -88,15 +86,23 @@ class PieceModel {
       id: id,
       name: json['name'],
       xmlUrl: json['xml_url'],
-      midiUrl: json['midi_url'],
-      audioUrl: json['audio_url'],
+      createdAt: json['created_at'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'name': name,
     'xml_url': xmlUrl,
-    'midi_url': midiUrl,
-    'audio_url': audioUrl,
+    'created_at': createdAt,
   };
+}
+
+class PieceFullModel {
+  final PieceModel meta;
+  final String? xmlContent;
+
+  PieceFullModel({
+    required this.meta,
+    required this.xmlContent,
+  });
 }

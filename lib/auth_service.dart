@@ -19,6 +19,10 @@ class AuthService {
     return credential.user!.uid;
   }
 
+  Future<void> deleteCurrentUser() async {
+    await _auth.currentUser?.delete();
+  }
+
   String? get currentUserId => _auth.currentUser?.uid;
 
   Future<void> logout() async {
