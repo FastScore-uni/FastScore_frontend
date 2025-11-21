@@ -1,4 +1,5 @@
 import 'package:fastscore_frontend/backend_service.dart';
+import 'package:fastscore_frontend/widgets/model_selection_button.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'dart:async';
@@ -31,6 +32,8 @@ class _MusicPageState extends State<MusicPage> {
   Timer? _timer;
   final Duration _maxRecordDuration = const Duration(minutes: 10);
 
+  String _selectedModel = 'Basic Pitch';
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -40,6 +43,7 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _showNotes() {
+    debugPrint('Wybrany model: $_selectedModel');
     final title = _titleController.text.isEmpty 
         ? 'Utwór bez tytułu' 
         : _titleController.text;
@@ -230,6 +234,13 @@ class _MusicPageState extends State<MusicPage> {
     });
   }
 
+  void _handleSelectedModel(String newModel){
+    setState(() {
+      _selectedModel = newModel;
+    });
+    debugPrint('Wybrany model: $_selectedModel');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
@@ -302,7 +313,12 @@ class _MusicPageState extends State<MusicPage> {
                   ),
                   SizedBox(height: isMobile ? 24 : 48),
 
-                  // Action buttons
+
+                  ModelSelectionButton(
+                    onModelSelected: _handleSelectedModel,
+                  ),
+                  const SizedBox(height: 32),
+
                   FilledButton.icon(
                     onPressed: () {
                       _showNotes();
