@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/file_drop_zone.dart';
 import 'package:fastscore_frontend/widgets/recording_panel.dart';
+import 'package:fastscore_frontend/models/transcription_model.dart';
 
 
 class MusicPage extends StatefulWidget {
@@ -32,7 +33,7 @@ class _MusicPageState extends State<MusicPage> {
   Timer? _timer;
   final Duration _maxRecordDuration = const Duration(minutes: 10);
 
-  String _selectedModel = 'Basic Pitch';
+  TranscriptionModel _selectedModel = TranscriptionModel.basicPitch;
 
   @override
   void dispose() {
@@ -234,11 +235,11 @@ class _MusicPageState extends State<MusicPage> {
     });
   }
 
-  void _handleSelectedModel(String newModel){
+  void _handleSelectedModel(TranscriptionModel newModel){
     setState(() {
       _selectedModel = newModel;
     });
-    debugPrint('Wybrany model: $_selectedModel');
+    debugPrint('Wybrany model: ${_selectedModel.displayName}');
   }
 
   @override

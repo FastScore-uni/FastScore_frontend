@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fastscore_frontend/models/transcription_model.dart';
 
-typedef ModelSelectedCallback = void Function(String selectedModel);
+typedef ModelSelectedCallback = void Function(TranscriptionModel selectedModel);
 
 class ModelSelectionButton extends StatefulWidget {
   final ModelSelectedCallback? onModelSelected;
@@ -15,16 +16,10 @@ class ModelSelectionButton extends StatefulWidget {
 }
 
 class _ModelSelectionButtonState extends State<ModelSelectionButton> {
-  String _selectedModel = 'Wybierz model transkrypcji';
-
-  final Map<String, String> _transcriptionModels = {
-    'Basic Pitch': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    'Omnizart': 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
-    'Crepe': 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.',
-  };
+  TranscriptionModel? _selectedModel;
 
   void _showSelectionDialog() async {
-    final String? newModel = await showDialog<String>(
+      TranscriptionModel? newModel = await showDialog<TranscriptionModel>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -32,12 +27,12 @@ class _ModelSelectionButtonState extends State<ModelSelectionButton> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: _transcriptionModels.entries.map((entry) {
+              children: TranscriptionModel.values.map((model) {
                 return ListTile(
-                  title: Text(entry.key),
-                  subtitle: Text(entry.value),
+                  title: Text(model.displayName),
+                  subtitle: Text(model.description),
                   onTap: () {
-                    Navigator.pop(context, entry.key);
+                    Navigator.pop(context, model);
                   },
                 );
               }).toList(),
@@ -47,7 +42,7 @@ class _ModelSelectionButtonState extends State<ModelSelectionButton> {
       },
     );
 
-    if (newModel != null && newModel.isNotEmpty) {
+    if (newModel != null) {
       setState(() {
         _selectedModel = newModel;
       });
@@ -61,7 +56,9 @@ class _ModelSelectionButtonState extends State<ModelSelectionButton> {
     return FilledButton.tonalIcon(
       onPressed: _showSelectionDialog,
       icon: const Icon(Icons.keyboard_arrow_down),
-      label: Text(_selectedModel),
+      label: Text(
+        _selectedModel?.displayName ?? 'Wybierz model transkrypcji (domyślnie: Basic Pitch)',
+      ),
     );
   }
 }
