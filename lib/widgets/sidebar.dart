@@ -60,6 +60,16 @@ class AppSidebar extends StatelessWidget {
                 Navigator.of(context).pushReplacementNamed('/my-songs');
               },
             ),
+            const SizedBox(height: 8),
+            // My account
+            _SidebarButton(
+              icon: Icons.person,
+              label: 'Moje\nkonto',
+              isSelected: currentRoute == '/auth',
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/auth');
+              },
+            ),
             const Spacer(),
             // Theme toggle button
             _SidebarButton(

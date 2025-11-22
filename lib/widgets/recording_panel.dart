@@ -6,7 +6,11 @@ typedef DurationFormatter = String Function(Duration duration);
 class RecordingPanel extends StatefulWidget {
   final VoidCallback onStart;
   final VoidCallback onStop;
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+  final VoidCallback? onReset;
   final bool isRecording;
+  final bool isPaused;
   final bool isDataReady;
   final Duration recordDuration;
   final DurationFormatter formatDuration;
@@ -15,7 +19,11 @@ class RecordingPanel extends StatefulWidget {
     super.key,
     required this.onStart,
     required this.onStop,
+    required this.onPause,
+    required this.onResume,
+    required this.onReset,
     required this.isRecording,
+    required this.isPaused,
     required this.recordDuration,
     required this.formatDuration,
     required this.isDataReady,
@@ -78,11 +86,18 @@ class _RecordingPanelState extends State<RecordingPanel> {
           // Show progress only when recording or data is ready
           if (widget.isRecording || widget.isDataReady) ...[
             SizedBox(height: isMobile ? 16 : 20),
-            
+
             // Progress bar row
             Row(
               children: [
                 // Current time
+                IconButton(
+                    onPressed: widget.isPaused ? widget.onResume : widget.onPause,
+                    icon: Icon(widget.isPaused ? Icons.play_circle : Icons.pause_circle),
+                    highlightColor: colorScheme.onTertiary,
+                    color: colorScheme.tertiary,
+                    iconSize: isMobile ? 20 : 32,
+                ),
                 Text(
                   widget.isRecording ? widget.formatDuration(widget.recordDuration) : '00:00',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -138,6 +153,25 @@ class _RecordingPanelState extends State<RecordingPanel> {
                       ),
                     ),
                   ),
+                  FilledButton.icon(
+                    onPressed: widget.onReset,
+                    icon: Icon(Icons.delete),
+                    label: Text(
+                      'Usuń nagranie',
+                      style: TextStyle(fontSize: isMobile ? 14 : 16),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.secondary,
+                      foregroundColor: colorScheme.onSecondary,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 24 : 32,
+                        vertical: isMobile ? 14 : 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ],
