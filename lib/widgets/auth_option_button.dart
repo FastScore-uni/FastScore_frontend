@@ -31,7 +31,7 @@ class AuthOptionButton extends StatelessWidget {
         icon: Icon(
           icon,
           color: Theme.of(context).colorScheme.primary,
-          size: 24,
+          size: 18,
         ),
         label: Text(label),
       ),
