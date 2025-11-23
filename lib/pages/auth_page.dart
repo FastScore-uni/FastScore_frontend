@@ -1,4 +1,5 @@
 import 'package:fastscore_frontend/widgets/auth_option_button.dart';
+import 'package:fastscore_frontend/widgets/auth_switch_row.dart';
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -96,63 +97,26 @@ class _AuthPage extends State<AuthPage> {
                     SizedBox(height: 18),
                   ],
 
-
                   if (_showLoginButton) ... [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Masz już konto? ",
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            debugPrint('Kliknięto logowanie!');
-                            setState(() {
-                              _currentView = AuthView.emailLogin;
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            "Zaloguj się",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    AuthSwitchRow(
+                        prompt: 'Masz już konto?',
+                        actionLabel: 'Zaloguj się',
+                        onActionTap: (){
+                          debugPrint('Przełączanie na logowanie');
+                          _switchToEmail();
+                        }
+                    )
                   ],
 
                   if (_showSignUpButton) ... [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Nie masz konta? ",
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            debugPrint('Kliknięto rejestracje!');
-                            _switchToSignUp();
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            "Utwórz konto",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    AuthSwitchRow(
+                        prompt: 'Nie masz konta?',
+                        actionLabel: 'Utwórz konto',
+                        onActionTap: (){
+                          debugPrint('Przełączanie na rejstrację');
+                          _switchToSignUp();
+                        }
+                    )
                   ],
                 ],
               ),
