@@ -1,3 +1,4 @@
+import 'package:fastscore_frontend/widgets/auth_password_field.dart';
 import 'package:fastscore_frontend/widgets/auth_primary_button.dart';
 import 'package:fastscore_frontend/widgets/auth_text_field.dart';
 import 'package:flutter/material.dart';
@@ -51,13 +52,11 @@ class _EmailLoginState extends State<EmailLoginForm>{
 
           const SizedBox(height: 16),
 
-          AuthTextField(
-            controller: _passwordController,
-            label: 'Hasło',
-            icon: Icons.lock,
-            keyboardType: TextInputType.visiblePassword,
-            obscureText: true,
-            validator: Validators.password,
+          AuthPasswordField(
+              controller: _passwordController,
+              label: 'Hasło',
+              icon: Icons.lock,
+              validator: Validators.password,
           ),
 
           SizedBox(

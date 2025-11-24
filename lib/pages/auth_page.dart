@@ -39,6 +39,11 @@ class _AuthPage extends State<AuthPage> {
   void _switchToEmail() => setState(() => _currentView = AuthView.emailLogin);
   void _switchToSignUp() => setState(() => _currentView = AuthView.emailSignUp);
 
+  void _signInWithGoogle() {
+    debugPrint("Logowanie przez Google...");
+    // Logowanie z Google
+  }
+
   Widget _buildCurrentForm() {
     switch (_currentView) {
       case AuthView.emailLogin:
@@ -118,7 +123,7 @@ class _AuthPage extends State<AuthPage> {
 
                   if (_showGoogle)...[
                     AuthOptionButton(
-                        onPressed: (){},
+                        onPressed: _signInWithGoogle,
                         icon: FontAwesomeIcons.google,
                         label: 'Kontynuuj z Google',
                     ),

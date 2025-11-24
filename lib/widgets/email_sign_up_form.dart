@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/validators.dart';
+import 'auth_password_field.dart';
 import 'auth_primary_button.dart';
 import 'auth_text_field.dart';
 
@@ -50,25 +51,22 @@ class _EmailSignUpFormState extends State<EmailSignUpForm>{
 
           const SizedBox(height: 16),
 
-          AuthTextField(
+          AuthPasswordField(
             controller: _passwordController,
             label: 'Hasło',
             icon: Icons.lock,
-            keyboardType: TextInputType.visiblePassword,
-            obscureText: true,
             validator: Validators.password,
           ),
 
           const SizedBox(height: 16),
 
-          AuthTextField(
+          AuthPasswordField(
             controller: _confirmPasswordController,
             label: 'Powtórz hasło',
             icon: Icons.lock,
-            keyboardType: TextInputType.visiblePassword,
-            obscureText: true,
             validator: (value) => Validators.confirmPassword(value, _passwordController.text),
           ),
+
           const SizedBox(height: 24),
           AuthPrimaryButton(onPressed: _submit, label: 'Utwórz konto'),
         ],
