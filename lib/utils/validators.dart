@@ -20,4 +20,14 @@ class Validators {
     if (value == null || value.length < 9) return 'Podaj poprawny numer';
     return null;
   }
+
+  static String? confirmPassword(String? value, String passwordToMatch) {
+    if (value == null || value.isEmpty) {
+      return 'To pole jest wymagane.';
+    }
+    if (value != passwordToMatch) {
+      return 'Hasła nie są identyczne!';
+    }
+    return null;
+  }
 }
