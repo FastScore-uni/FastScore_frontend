@@ -1,4 +1,5 @@
 import 'package:fastscore_frontend/widgets/auth_option_button.dart';
+import 'package:fastscore_frontend/widgets/auth_text_field.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/validators.dart';
@@ -40,11 +41,12 @@ class _ResetPasswordFormState extends State<ResetPasswordForm>{
       key: _formKey,
       child: Column(
         children: [
-          TextFormField(
-          controller: _emailController,
-          decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
-          validator: Validators.email,
-          keyboardType: TextInputType.emailAddress,
+          AuthTextField(
+              controller: _emailController,
+              label: 'Email',
+              icon: Icons.email,
+              keyboardType: TextInputType.emailAddress,
+              validator: Validators.email,
           ),
           const SizedBox(height: 24),
           AuthPrimaryButton(onPressed: _submit, label: 'Wyślij'),

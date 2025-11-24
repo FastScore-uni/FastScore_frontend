@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/validators.dart';
+import 'auth_primary_button.dart';
+import 'auth_text_field.dart';
 
 class EmailSignUpForm extends StatefulWidget{
   final Function(String email, String password) onSignUp;
@@ -17,11 +19,13 @@ class _EmailSignUpFormState extends State<EmailSignUpForm>{
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -36,25 +40,37 @@ class _EmailSignUpFormState extends State<EmailSignUpForm>{
       key: _formKey,
       child: Column(
         children: [
-          TextFormField(
+          AuthTextField(
             controller: _emailController,
-            decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
-            validator: Validators.email,
+            label: 'Email',
+            icon: Icons.email,
             keyboardType: TextInputType.emailAddress,
+            validator: Validators.email,
           ),
+
           const SizedBox(height: 16),
-          TextFormField(
+
+          AuthTextField(
             controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'Hasło', prefixIcon: Icon(Icons.lock)),
+            label: 'Hasło',
+            icon: Icons.lock,
+            keyboardType: TextInputType.visiblePassword,
             obscureText: true,
             validator: Validators.password,
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _submit,
-            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-            child: const Text('Zaloguj się'),
+
+          const SizedBox(height: 16),
+
+          AuthTextField(
+            controller: _confirmPasswordController,
+            label: 'Potwierdź hasło',
+            icon: Icons.lock,
+            keyboardType: TextInputType.visiblePassword,
+            obscureText: true,
+            validator: (value) => Validators.confirmPassword(value, _passwordController.text),
           ),
+          const SizedBox(height: 24),
+          AuthPrimaryButton(onPressed: _submit, label: 'Utwórz konto'),
         ],
       ),
     );
