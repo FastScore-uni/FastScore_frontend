@@ -63,7 +63,7 @@ class _EmailSignUpFormState extends State<EmailSignUpForm>{
 
           AuthTextField(
             controller: _confirmPasswordController,
-            label: 'Potwierdź hasło',
+            label: 'Powtórz hasło',
             icon: Icons.lock,
             keyboardType: TextInputType.visiblePassword,
             obscureText: true,
