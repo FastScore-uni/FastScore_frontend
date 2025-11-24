@@ -1,8 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:fastscore_frontend/utils/validators.dart';
 import 'package:fastscore_frontend/widgets/auth_primary_button.dart';
 import 'package:fastscore_frontend/widgets/auth_text_field.dart';
-import 'package:flutter/material.dart';
 
-import '../utils/validators.dart';
 
 class PhoneAuthForm extends StatefulWidget{
   final Function(String phoneNumber) onSendCode;
@@ -20,13 +21,15 @@ class PhoneAuthForm extends StatefulWidget{
 
 class _PhoneAuthFormState extends State<PhoneAuthForm>{
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
   bool _codeSent = false;
 
+  String _fullPhoneNumber = '';
+  final PhoneNumber _initialNumber = PhoneNumber(isoCode: 'PL');
+  bool _isPhoneNumberValid = false;
+
   @override
   void dispose(){
-    _phoneController.dispose();
     _otpController.dispose();
     super.dispose();
   }
@@ -35,8 +38,10 @@ class _PhoneAuthFormState extends State<PhoneAuthForm>{
     if (!_formKey.currentState!.validate()) return;
 
     if (!_codeSent) {
-      widget.onSendCode(_phoneController.text);
-      setState(() => _codeSent = true);
+      if (_isPhoneNumberValid) {
+        widget.onSendCode(_fullPhoneNumber);
+        setState(() => _codeSent = true);
+      }
     } else {
       widget.onVerifyCode(_otpController.text);
     }
@@ -49,12 +54,35 @@ class _PhoneAuthFormState extends State<PhoneAuthForm>{
       child: Column(
         children: [
 
-          AuthTextField(
-              controller: _phoneController,
-              label: 'Numer telefonu',
-              icon: Icons.phone,
-              keyboardType: TextInputType.phone,
-              validator: Validators.phone,
+          SizedBox(
+            width: 400,
+            child: InternationalPhoneNumberInput(
+              selectorConfig: const SelectorConfig(
+                selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+              ),
+              inputDecoration: InputDecoration(
+                labelText: 'Numer telefonu',
+                icon: const Icon(Icons.phone),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                hintText: 'np. 123 456 789',
+              ),
+              errorMessage: 'Nieprawidłowy numer telefonu.',
+              isEnabled: !_codeSent,
+              initialValue: _initialNumber,
+              keyboardType: TextInputType.number,
+
+              onInputChanged: (PhoneNumber number) {
+                _fullPhoneNumber = number.phoneNumber ?? '';
+              },
+
+              onInputValidated: (bool isValid) {
+                setState(() {
+                  _isPhoneNumberValid = isValid;
+                });
+              },
+            ),
           ),
 
           if (_codeSent) ...[
