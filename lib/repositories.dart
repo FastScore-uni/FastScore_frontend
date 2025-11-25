@@ -28,7 +28,7 @@ class UserRepository {
     };
 
     await _db.setUser(uid, data);
-
+    data["id"] = uid;
     return UserModel.fromJson(uid, data);
   }
 
@@ -104,5 +104,23 @@ class PieceRepository {
 
     // 3. Zwróć metadane + zawartość pliku
     return PieceFullModel(meta: meta, xmlContent: xmlContent);
+  }
+
+  Future<void> deletePiece({
+    required String userId,
+    required PieceModel meta,
+  }) async {
+    // 1. Usuń plik XML ze Storage (jeśli istnieje)
+    if (meta.xmlUrl.isNotEmpty) {
+      await _db.deleteFile(meta.xmlUrl);
+    }
+
+    // 2. Usuń dokument z Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('pieces')
+        .doc(meta.id)
+        .delete();
   }
 }

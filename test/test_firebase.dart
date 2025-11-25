@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fastscore_frontend/firebase_options.dart';
@@ -17,8 +15,8 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // DON'T configure any Firestore settings - use defaults
-  print("Firestore initialized for project: fastscore-b82f4");
-  print("Using default Firestore settings (no custom configuration)");
+  debugPrint("Firestore initialized for project: fastscore-b82f4");
+  debugPrint("Using default Firestore settings (no custom configuration)");
 
   runApp(TestApp());
 }
@@ -52,163 +50,239 @@ class _TestAppState extends State<TestApp> {
   Future<void> _runTests() async {
     try {
       // Wait for Firebase to fully initialize
-      print("===== FIREBASE TEST START =====");
-      print("-> Waiting 1 second for Firebase SDK to fully initialize...");
+      debugPrint("===== FIREBASE TEST START =====");
+      debugPrint("-> Waiting 1 second for Firebase SDK to fully initialize...");
       await Future.delayed(Duration(seconds: 1));
 
       final auth = AuthService();
       final firebase = FirebaseService();
       final userRepo = UserRepository(auth, firebase);
+      final pieceRepo = PieceRepository(firebase);
 
-      String testUserId = "pYOhLJq137b2Em4Q2AaB8KKbOeh1";
+      String testUserId = "g2FpaB57YpeHaUnzlvVVYhlT9Xp1";
 
       await _connectionTests(testUserId);
       await _userTests(auth, userRepo);
+      await _pieceTests(testUserId, pieceRepo);
 
-      print("===== FIREBASE TEST FINISHED =====");
+      debugPrint("===== FIREBASE TEST FINISHED =====");
     } catch (e, stackTrace) {
-      print("ERROR: $e");
-      print("Stack trace: $stackTrace");
+      debugPrint("ERROR: $e");
+      debugPrint("Stack trace: $stackTrace");
     }
   }
 
   Future<void> _connectionTests(String existingUserId) async {
     // TEST 0 - CHECK FIRESTORE CONNECTION
-    print("-> Testing Firestore connection...");
-    print("   Project ID: fastscore-b82f4");
+    debugPrint("-> Testing Firestore connection...");
+    debugPrint("   Project ID: fastscore-b82f4");
 
     // Wait a bit longer for Firestore to initialize
-    print("-> Waiting 5 seconds for Firestore to fully initialize...");
+    debugPrint("-> Waiting 5 seconds for Firestore to fully initialize...");
     await Future.delayed(Duration(seconds: 5));
 
     try {
-      print("   Attempting to read from Firestore...");
+      debugPrint("   Attempting to read from Firestore...");
 
       // Try to read the specific document we can see in the screenshot
-      print("   Trying to get document $existingUserId by ID...");
+      debugPrint("   Trying to get document $existingUserId by ID...");
       final specificDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(existingUserId)
           .get();
 
       if (specificDoc.exists) {
-        print("   ✅ Found the manual document!");
-        print("   Data: ${specificDoc.data()}");
+        debugPrint("   ✅ Found the manual document!");
+        debugPrint("   Data: ${specificDoc.data()}");
       } else {
-        print("   ❌ Document $existingUserId NOT found!");
+        debugPrint("   ❌ Document $existingUserId NOT found!");
       }
 
       // Also try listing all documents
-      print("   Listing all documents in users collection...");
+      debugPrint("   Listing all documents in users collection...");
       final testDoc = await FirebaseFirestore.instance
           .collection('users')
           .get();
 
-      print(
+      debugPrint(
         "SUCCESS: Firestore query completed! Found ${testDoc.docs.length} documents",
       );
       if (testDoc.docs.isNotEmpty) {
         for (var doc in testDoc.docs) {
-          print("   - Document ID: ${doc.id}, data: ${doc.data()}");
+          debugPrint("   - Document ID: ${doc.id}, data: ${doc.data()}");
         }
       } else {
-        print(
+        debugPrint(
           "   No documents found in query (but we see one in Firebase Console!)",
         );
       }
     } catch (e) {
-      print("ERROR: Cannot connect to Firestore: $e");
-      print("Check browser console (F12) for CORS/network errors");
+      debugPrint("ERROR: Cannot connect to Firestore: $e");
+      debugPrint("Check browser console (F12) for CORS/network errors");
       return;
     }
   }
 
-  Future<void> _userTests(
-    AuthService auth,
-    UserRepository userRepo,
-  ) async {
+  Future<void> _userTests(AuthService auth, UserRepository userRepo) async {
     // TEST 1 — REJESTRACJA
-    print("-> Registering new user...");
+    debugPrint("-> Registering new user...");
     final email = "test${DateTime.now().millisecondsSinceEpoch}@example.com";
     final password = "qwerty123";
-    final userId = await auth.register(email, password);
-    print("Registered user with UID: $userId");
+    final directUserId = await auth.register(email, password);
+    debugPrint("Registered user with UID: $directUserId");
 
     // Verify the user is actually signed in
-    print("-> Checking if user is signed in...");
+    debugPrint("-> Checking if user is signed in...");
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      print("ERROR: User is NOT signed in after registration!");
+      debugPrint("ERROR: User is NOT signed in after registration!");
       return;
     }
-    print("SUCCESS: User is signed in. UID: ${currentUser.uid}");
-    print("   Email: ${currentUser.email}");
+    debugPrint("SUCCESS: User is signed in. UID: ${currentUser.uid}");
+    debugPrint("   Email: ${currentUser.email}");
 
     // TEST 2 — TWORZENIE PROFILU
-    print("-> Creating Firestore user profile...");
-    print("   Using document ID: $userId");
+    debugPrint("-> Creating Firestore user profile...");
+    debugPrint("   Using document ID: $directUserId");
 
     // DIRECT TEST - try writing directly to Firestore without service layer
-    print("-> DIRECT TEST: Writing to Firestore directly...");
+    debugPrint("-> DIRECT TEST: Writing to Firestore directly...");
     try {
-      print("   Writing document $userId...");
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({
-        'login': 'tester',
-        'email': email,
-        'phone': '123-456-789',
-        'piece_list': [],
-        'settings': {'language': 'pl'},
-      });
-      print("✅ SUCCESS: Direct write completed!");
+      debugPrint("   Writing document $directUserId...");
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(directUserId)
+          .set({
+            'login': 'tester',
+            'email': email,
+            'phone': '123-456-789',
+            'piece_list': [],
+            'settings': {'language': 'pl'},
+          });
+      debugPrint("✅ SUCCESS: Direct write completed!");
     } catch (e) {
-      print("❌ ERROR: Direct write failed: $e");
+      debugPrint("❌ ERROR: Direct write failed: $e");
     }
 
-    // Now try through service layer
-    print("-> Creating profile through service layer...");
+    // Now try through repo layer
+    debugPrint("-> Creating profile through service layer...");
+    final email2 = "test${DateTime.now().millisecondsSinceEpoch}@example.com";
     final profile = await userRepo.createUser(
       login: "tester",
       password: "admin1234",
-      email: email,
+      email: email2,
       phone: "123-456-789",
     );
-    print("User profile created locally: ${profile.toJson()}");
+    debugPrint("User profile created locally: ${profile.toJson()}");
 
+    final String repoUserId = profile.id;
     // TEST 2.5 — IMMEDIATE FETCH TO CONFIRM CREATION
-    print("-> Immediately fetching user to confirm it was saved...");
-    final immediateCheck = await userRepo.getUser(userId);
+    debugPrint("-> Immediately fetching user to confirm it was saved...");
+    final immediateCheck = await userRepo.getUser(repoUserId);
     if (immediateCheck == null) {
-      print("ERROR: User NOT found immediately after creation!");
-      print("   This means the write to Firestore failed or hasn't synced yet");
+      debugPrint("ERROR: User NOT found immediately after creation!");
+      debugPrint(
+        "   This means the write to Firestore failed or hasn't synced yet",
+      );
     } else {
-      print("SUCCESS: User found immediately after creation!");
-      print("   Data: ${immediateCheck.toJson()}");
+      debugPrint("SUCCESS: User found immediately after creation!");
+      debugPrint("   Data: ${immediateCheck.toJson()}");
     }
 
     // Wait a moment for Firestore to sync
-    print("-> Waiting 2 seconds for Firestore to sync...");
+    debugPrint("-> Waiting 2 seconds for Firestore to sync...");
     await Future.delayed(Duration(seconds: 2));
 
     // TEST 3 — POBRANIE PROFILU
-    print("-> Fetching user profile again...");
-    print("   Looking for document ID: $userId");
-    final fetched = await userRepo.getUser(userId);
+    debugPrint("-> Fetching user profile again...");
+    debugPrint("   Looking for document ID: $repoUserId");
+    final fetched = await userRepo.getUser(repoUserId);
     if (fetched == null) {
-      print("ERROR: User not found in Firestore!");
+      debugPrint("ERROR: User not found in Firestore!");
+    } else {
+      debugPrint("Fetched: ${fetched.toJson()}");
+      // TEST 4 — AKTUALIZACJA PROFILU
+      debugPrint("-> Updating profile (changing language to 'en')...");
+      final updated = fetched.copyWith(
+        settings: fetched.settings.copyWith(language: "en"),
+      );
+      await userRepo.updateUser(updated);
+
+      // TEST 5 — SPRAWDZENIE AKTUALIZACJI
+      debugPrint("-> Fetching updated profile...");
+      final updatedFetched = await userRepo.getUser(repoUserId);
+      debugPrint("Updated profile: ${updatedFetched?.toJson()}");
+    }
+
+
+
+    // TEST 6 — USUWANIE UŻYTKOWNIKÓW
+    try {
+      debugPrint("-> Deleting users...");
+      auth.logout();
+      await userRepo.deleteUser(directUserId);
+      await userRepo.deleteUser(repoUserId);
+      debugPrint("✅ SUCCESS: Created users removed from database");
+    } catch (e) {
+      debugPrint("❌ ERROR: deletion failed: $e");
+    }
+  }
+
+  Future<void> _pieceTests(String userId, PieceRepository pieceRepo) async {
+    debugPrint("===== PIECE TESTS START =====");
+
+    final xmlContent = """
+  <score-partwise>
+     <part>
+        <measure>
+           <note><pitch><step>C</step><octave>4</octave></pitch></note>
+        </measure>
+     </part>
+  </score-partwise>
+  """;
+
+    debugPrint("-> Adding new piece...");
+    final piece = await pieceRepo.createPiece(
+      userId: userId,
+      name: "Test Piece",
+      xmlString: xmlContent,
+    );
+
+    debugPrint("   Created piece:");
+    debugPrint("   ID: ${piece.id}");
+    debugPrint("   name: ${piece.name}");
+    debugPrint("   xml_url: ${piece.xmlUrl}");
+
+    // TEST 2 — Odczyt metadanych + content
+    debugPrint("-> Fetching piece with XML content...");
+    final full = await pieceRepo.getPiece(userId: userId, pieceId: piece.id);
+
+    if (full == null) {
+      debugPrint("❌ ERROR: Piece not found!");
       return;
     }
-    print("Fetched: ${fetched.toJson()}");
 
-    // TEST 4 — AKTUALIZACJA PROFILU
-    print("-> Updating profile (changing language to 'en')...");
-    final updated = fetched.copyWith(
-      settings: fetched.settings.copyWith(language: "en"),
+    debugPrint("   Piece metadata: ${full.meta.toJson()}");
+    debugPrint("   XML content loaded:");
+    debugPrint(full.xmlContent);
+
+    // TEST 3 — Usuwanie
+    debugPrint("-> Deleting piece...");
+    await pieceRepo.deletePiece(userId: userId, meta: full.meta);
+
+    // TEST 4 — Sprawdzenie czy usunięty
+    debugPrint("-> Verifying deletion...");
+    final checkAgain = await pieceRepo.getPiece(
+      userId: userId,
+      pieceId: piece.id,
     );
-    await userRepo.updateUser(updated);
 
-    // TEST 5 — SPRAWDZENIE AKTUALIZACJI
-    print("-> Fetching updated profile...");
-    final updatedFetched = await userRepo.getUser(userId);
-    print("Updated profile: ${updatedFetched?.toJson()}");
+    if (checkAgain == null) {
+      debugPrint("   SUCCESS: Piece removed from Firestore!");
+    } else {
+      debugPrint("   ❌ ERROR: Piece still exists in Firestore!");
+    }
+
+    debugPrint("===== PIECE TESTS END =====");
   }
 }
