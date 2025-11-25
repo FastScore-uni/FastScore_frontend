@@ -1,3 +1,4 @@
+import 'package:fastscore_frontend/repositories.dart';
 import 'package:fastscore_frontend/widgets/auth_option_button.dart';
 import 'package:fastscore_frontend/widgets/auth_switch_row.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:fastscore_frontend/widgets/email_login_form.dart';
 import 'package:fastscore_frontend/widgets/email_sign_up_form.dart';
 import 'package:fastscore_frontend/widgets/phone_auth_form.dart';
 import 'package:fastscore_frontend/widgets/reset_password_form.dart';
+import 'package:provider/provider.dart';
 
 class AuthPage extends StatefulWidget{
   final AuthView initialView;
@@ -39,19 +41,33 @@ class _AuthPage extends State<AuthPage> {
   void _switchToEmail() => setState(() => _currentView = AuthView.emailLogin);
   void _switchToSignUp() => setState(() => _currentView = AuthView.emailSignUp);
 
-  void _signInWithGoogle() {
+  void _signInWithEmail(BuildContext context, String email, String password) {
+    debugPrint("Logowanie przez email...");
+    // Logowanie z email
+  }
+
+  void _signUpWithEmail(BuildContext context, String email, String password) async {
+    debugPrint("Rejestracja przez email...");
+    final repo = context.read<UserRepository>();
+    try {
+      String login = email.split('@').first;
+      await repo.createUser(email: email, password: password, login: login, phone: "");
+      _switchToSignUp();
+    } catch (error) {
+      debugPrint("Rejestracja nieudana: $error");
+    }
+  }
+
+  void _signInWithGoogle(BuildContext context) {
     debugPrint("Logowanie przez Google...");
     // Logowanie z Google
   }
 
-  Widget _buildCurrentForm() {
+  Widget _buildCurrentForm(BuildContext context) {
     switch (_currentView) {
       case AuthView.emailLogin:
         return EmailLoginForm(
-          onLogin: (email, password) {
-            debugPrint("LOGOWANIE: $email / $password");
-            // logowanie z firebase
-          },
+          onLogin: (email, password) => _signInWithEmail(context, email, password),
           onForgotPassword: () {
             setState(() => _currentView = AuthView.emailResetPassword);
           },
@@ -59,10 +75,7 @@ class _AuthPage extends State<AuthPage> {
 
       case AuthView.emailSignUp:
         return EmailSignUpForm(
-          onSignUp: (email, password) {
-            debugPrint("REJESTRACJA: $email / $password");
-            // rejestracja z firebase
-          },
+          onSignUp: (email, password) => _signUpWithEmail(context, email, password)
         );
 
       case AuthView.phoneLoginOrSignUp:
@@ -117,13 +130,13 @@ class _AuthPage extends State<AuthPage> {
                   ),
 
                   SizedBox(height: isMobile ? 12 : 24),
-                  _buildCurrentForm(),
+                  _buildCurrentForm(context),
 
                   SizedBox(height: 18),
 
                   if (_showGoogle)...[
                     AuthOptionButton(
-                        onPressed: _signInWithGoogle,
+                        onPressed: () => _signInWithGoogle(context),
                         icon: FontAwesomeIcons.google,
                         label: 'Kontynuuj z Google',
                     ),

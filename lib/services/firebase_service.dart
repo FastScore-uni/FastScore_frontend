@@ -41,9 +41,14 @@ class FirebaseService {
     return utf8.decode(data);
   }
 
+  Future<void> deleteFile(String url) async {
+    final ref = _storage.refFromURL(url);
+    await ref.delete();
+  }
+
   // Users
   Future<void> setUser(String id, Map<String, dynamic> data) async {
-    await _db.collection('users').add(data);
+    await _db.collection('users').doc(id).set(data);
   }
 
   Future<DocumentSnapshot> getUser(String id) async {
