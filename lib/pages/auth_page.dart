@@ -46,10 +46,13 @@ class _AuthPage extends State<AuthPage> {
     final repo = context.read<UserRepository>();
     try {
       await repo.signInUser(email: email, password: password);
+      debugPrint("Logowanie udane");
+      if (context.mounted){
+        Navigator.of(context).pushNamed('/');
+      }
     } catch (error) {
       debugPrint("Logowanie nieudane: $error");
     }
-    debugPrint("Logowanie udane");
   }
 
   Future<void> _signUpWithEmail(BuildContext context, String email, String password) async {
@@ -58,7 +61,9 @@ class _AuthPage extends State<AuthPage> {
     try {
       String login = email.split('@').first;
       await repo.createUser(email: email, password: password, login: login, phone: "");
-      _switchToSignUp();
+      if (context.mounted){
+        Navigator.of(context).pushNamed('/');
+      }
     } catch (error) {
       debugPrint("Rejestracja nieudana: $error");
     }
