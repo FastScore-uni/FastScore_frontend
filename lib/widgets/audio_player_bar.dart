@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:just_audio/just_audio.dart';
 
 class AudioPlayerBar extends StatefulWidget {
   final String songTitle;
-  final String duration;
-  final VoidCallback? onPlayPause;
-  final bool isPlaying;
+  final List<int>? audioBytes;
 
   const AudioPlayerBar({
     super.key,
     required this.songTitle,
-    this.duration = '0:58',
-    this.onPlayPause,
-    this.isPlaying = false,
+    required this.audioBytes,
   });
 
   @override
@@ -20,9 +17,60 @@ class AudioPlayerBar extends StatefulWidget {
 }
 
 class _AudioPlayerBarState extends State<AudioPlayerBar> {
-  Duration _currentPosition = Duration.zero;
-  Duration _totalDuration = const Duration(seconds: 58);
-  
+  final AudioPlayer _player = AudioPlayer();
+
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  bool _isPlaying = false;
+  bool _isLoading = true;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAudio();
+  }
+
+  Future<void> _loadAudio() async {
+    if (widget.audioBytes == null) return;
+
+    try {
+      final uri = Uri.dataFromBytes(widget.audioBytes!,
+          mimeType: 'audio/wav');
+
+      await _player.setUrl(uri.toString());
+
+      _player.positionStream.listen((pos) {
+        setState(() => _position = pos);
+      });
+
+      _player.durationStream.listen((dur) {
+        if (dur != null) {
+          setState(() => _duration = dur);
+        }
+      });
+
+      _player.playerStateStream.listen((state) {
+        setState(() {
+          _isPlaying = state.playing;
+          _isLoading = state.processingState == ProcessingState.loading ||
+              state.processingState == ProcessingState.buffering;
+        });
+      });
+
+    } catch (e) {
+      debugPrint("Błąd ładowania audio: $e");
+    }
+  }
+
+  void _togglePlayPause() {
+    if (_player.playing) {
+      _player.pause();
+    } else {
+      _player.play();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,14 +91,11 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: ProgressBar(
-              progress: _currentPosition,
-              total: _totalDuration,
-              buffered: _totalDuration, // Can be updated with actual buffered value
+              progress: _position,
+              total: _duration,
+              buffered: _duration,
               onSeek: (duration) {
-                setState(() {
-                  _currentPosition = duration;
-                });
-                // TODO: Seek to position in audio player
+                _player.seek(duration);
               },
               barHeight: 3.0,
               thumbRadius: 6.0,
@@ -61,13 +106,14 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
               thumbColor: Theme.of(context).colorScheme.primary,
             ),
           ),
+
           // Player controls
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  // Album art / thumbnail
+                  // Ikona
                   Container(
                     width: 48,
                     height: 48,
@@ -81,7 +127,8 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Song info
+
+                  // Nazwa utworu
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -90,41 +137,40 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
                         Text(
                           widget.songTitle,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                                fontWeight: FontWeight.w500,
+                              ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          widget.duration,
+                          _formatDuration(_duration),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
                   ),
+
                   const SizedBox(width: 16),
-                  // Playback controls
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          widget.isPlaying ? Icons.pause : Icons.play_arrow,
-                          size: 32,
-                        ),
-                        onPressed: widget.onPlayPause,
+
+                  // Play/Pause or loader
+                  if (_isLoading)
+                    const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  else
+                    IconButton(
+                      icon: Icon(
+                        _isPlaying ? Icons.pause : Icons.play_arrow,
+                        size: 32,
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.skip_next, size: 28),
-                        onPressed: () {
-                          // Next track
-                        },
-                      ),
-                    ],
-                  ),
+                      onPressed: _togglePlayPause,
+                    ),
+
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
@@ -132,5 +178,10 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
         ],
       ),
     );
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(d.inMinutes)}:${twoDigits(d.inSeconds % 60)}";
   }
 }
