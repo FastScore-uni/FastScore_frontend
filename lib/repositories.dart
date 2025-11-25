@@ -32,6 +32,22 @@ class UserRepository {
     return UserModel.fromJson(uid, data);
   }
 
+  Future<UserModel> signInUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final uid = await _auth.login(email, password);
+      final userData = await getUser(uid);
+      if (userData == null) {
+        throw Exception("Brak danych użytkownika.");
+      }
+      return userData;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<UserModel?> getUser(String id) async {
     final snap = await _db.getUser(id);
     if (!snap.exists) return null;

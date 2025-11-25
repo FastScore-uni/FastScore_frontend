@@ -41,12 +41,18 @@ class _AuthPage extends State<AuthPage> {
   void _switchToEmail() => setState(() => _currentView = AuthView.emailLogin);
   void _switchToSignUp() => setState(() => _currentView = AuthView.emailSignUp);
 
-  void _signInWithEmail(BuildContext context, String email, String password) {
+  Future<void> _signInWithEmail(BuildContext context, String email, String password) async{
     debugPrint("Logowanie przez email...");
-    // Logowanie z email
+    final repo = context.read<UserRepository>();
+    try {
+      await repo.signInUser(email: email, password: password);
+    } catch (error) {
+      debugPrint("Logowanie nieudane: $error");
+    }
+    debugPrint("Logowanie udane");
   }
 
-  void _signUpWithEmail(BuildContext context, String email, String password) async {
+  Future<void> _signUpWithEmail(BuildContext context, String email, String password) async {
     debugPrint("Rejestracja przez email...");
     final repo = context.read<UserRepository>();
     try {
