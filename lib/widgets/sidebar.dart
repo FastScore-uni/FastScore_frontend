@@ -65,9 +65,9 @@ class AppSidebar extends StatelessWidget {
             _SidebarButton(
               icon: Icons.person,
               label: 'Moje\nkonto',
-              isSelected: currentRoute == '/auth',
+              isSelected: currentRoute == '/account',
               onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/auth');
+                Navigator.of(context).pushReplacementNamed('/account');
               },
             ),
             const Spacer(),
