@@ -10,6 +10,8 @@ class UserRepository {
 
   UserRepository(this._auth, this._db);
 
+  Stream<String?> get onAuthStateChange => _auth.onAuthStateChange;
+
   Future<UserModel> createUser({
     required String email,
     required String password,
@@ -46,6 +48,10 @@ class UserRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> signOutUser() async {
+    return await _auth.logout();
   }
 
   Future<UserModel?> getUser(String id) async {

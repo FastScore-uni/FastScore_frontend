@@ -1,5 +1,5 @@
 import 'package:fastscore_frontend/home_page.dart';
-import 'package:fastscore_frontend/pages/auth_page.dart';
+import 'package:fastscore_frontend/pages/account_switcher.dart';
 import 'package:fastscore_frontend/pages/my_songs_page.dart';
 import 'package:fastscore_frontend/pages/notes_page.dart';
 import 'package:fastscore_frontend/repositories.dart';
@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/': (context) => const MusicPage(),
             '/my-songs': (context) => const MySongsPage(),
-            '/auth': (context) => const AuthPage(),
+            '/account': (context) => const AccountSwitcher(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/notes') {

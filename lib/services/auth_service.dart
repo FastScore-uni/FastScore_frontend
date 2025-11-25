@@ -25,6 +25,10 @@ class AuthService {
 
   String? get currentUserId => _auth.currentUser?.uid;
 
+  Stream<String?> get onAuthStateChange{
+    return _auth.authStateChanges().map((user) => user?.uid);
+  }
+
   Future<void> logout() async {
     await _auth.signOut();
   }
