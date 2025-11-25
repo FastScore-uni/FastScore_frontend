@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:fastscore_frontend/backend_service.dart';
+import 'package:fastscore_frontend/services/backend_service.dart';
 
 
 class HtmlWidget extends StatefulWidget {

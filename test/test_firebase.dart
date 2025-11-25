@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fastscore_frontend/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'package:fastscore_frontend/auth_service.dart';
-import 'package:fastscore_frontend/firebase_service.dart';
+import 'package:fastscore_frontend/services/auth_service.dart';
+import 'package:fastscore_frontend/services/firebase_service.dart';
 import 'package:fastscore_frontend/repositories.dart';
 
 import 'package:flutter/material.dart';

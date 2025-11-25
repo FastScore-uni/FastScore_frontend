@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'firebase_service.dart';
-import 'auth_service.dart';
-import 'data_models.dart';
+import 'services/firebase_service.dart';
+import 'services/auth_service.dart';
+import 'models/database_models.dart';
 
 class UserRepository {
   final AuthService _auth;

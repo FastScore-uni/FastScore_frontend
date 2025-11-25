@@ -1,4 +1,4 @@
-import 'package:fastscore_frontend/backend_service.dart';
+import 'package:fastscore_frontend/services/backend_service.dart';
 import 'package:fastscore_frontend/widgets/model_selection_button.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
