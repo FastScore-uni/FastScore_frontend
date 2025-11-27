@@ -1,17 +1,17 @@
 enum TranscriptionModel{
   basicPitch(
     displayName: 'Basic Pitch',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    description: 'Szybkie działanie, obsługuje wiele lini melodycznych, nie zawsze jednak zwraca dokładne wyniki.',
     apiPath: '/convert_bp',
   ),
   crepe(
       displayName: 'Crepe',
-      description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris',
+      description: 'Obsługuje tylko jedną linię melodyczną, ma jednak wysoką dokładność. Generowanie nut może chwilę zająć.',
       apiPath: '/convert_crepe',
   ),
   melodyExtraction(
     displayName: 'Melody Extraction',
-    description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum',
+    description: 'Wyciąga z utworu polifonicznego pojedynczą linię melodyczną.',
     apiPath: '/convert_melody_ext',
   );
 
