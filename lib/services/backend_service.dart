@@ -1,6 +1,5 @@
 import 'package:fastscore_frontend/models/transcription_model.dart';
 import 'package:http/http.dart';
-import 'package:http_parser/http_parser.dart';
 
 class BackendService {
   // Klasa singletonowa do komunikacji z api na backendzie
@@ -62,7 +61,7 @@ class BackendService {
   }
 
   Future<List<int>> convertMidiToWav() async {
-    final baseName = audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
     final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
 
@@ -85,7 +84,7 @@ class BackendService {
   }
 
   Future<List<int>> downloadMidi() async {
-    final baseName = audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
     final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
 
