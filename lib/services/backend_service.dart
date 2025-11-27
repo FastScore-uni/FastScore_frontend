@@ -60,4 +60,49 @@ class BackendService {
       error = 'Nie udało się pobrać XML: $e';
     }
   }
+
+  Future<List<int>> convertMidiToWav() async {
+    final baseName = audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
+    final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
+
+    final response = await post(url);
+
+    if (response.statusCode != 200) {
+      throw Exception("Błąd konwersji MIDI: ${response.statusCode}");
+    }
+
+    return response.bodyBytes;
+  }
+
+  Future<List<int>> downloadFile(String url) async {
+    final response = await get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception("Błąd pobierania pliku: ${response.statusCode}");
+    }
+  }
+
+  Future<List<int>> downloadMidi() async {
+    final baseName = audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
+    final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
+
+    return downloadFile(url);
+  }
+
+  Future<List<int>> downloadPdf() async {
+    String xmlPath = "output.musicxml";
+    final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
+
+    return downloadFile(url);
+  }
+
+  Future<List<int>> downloadXml() async {
+    String xmlPath = "output.musicxml";
+    final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
+    
+    return downloadFile(url);
+  }
 }

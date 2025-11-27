@@ -10,6 +10,8 @@ class UserRepository {
 
   UserRepository(this._auth, this._db);
 
+  Stream<String?> get onAuthStateChange => _auth.onAuthStateChange;
+
   Future<UserModel> createUser({
     required String email,
     required String password,
@@ -30,6 +32,26 @@ class UserRepository {
     await _db.setUser(uid, data);
     data["id"] = uid;
     return UserModel.fromJson(uid, data);
+  }
+
+  Future<UserModel> signInUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final uid = await _auth.login(email, password);
+      final userData = await getUser(uid);
+      if (userData == null) {
+        throw Exception("Brak danych użytkownika.");
+      }
+      return userData;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> signOutUser() async {
+    return await _auth.logout();
   }
 
   Future<UserModel?> getUser(String id) async {
