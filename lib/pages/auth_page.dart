@@ -50,8 +50,8 @@ class _AuthPage extends State<AuthPage> {
       if (context.mounted){
         Navigator.of(context).pushNamed('/');
       }
-    } catch (error) {
-      debugPrint("Logowanie nieudane: $error");
+    } catch (e) {
+      debugPrint("Logowanie nieudane: $e");
     }
   }
 
@@ -64,14 +64,18 @@ class _AuthPage extends State<AuthPage> {
       if (context.mounted){
         Navigator.of(context).pushNamed('/');
       }
-    } catch (error) {
-      debugPrint("Rejestracja nieudana: $error");
+    } catch (e) {
+      debugPrint("Rejestracja nieudana: $e");
     }
   }
 
   void _signInWithGoogle(BuildContext context) {
     debugPrint("Logowanie przez Google...");
-    // Logowanie z Google
+    try {
+    context.read<UserRepository>().verifyUserByGoogle();
+    } catch (e) {
+      debugPrint("Rejestracja nieudana: $e");
+    }
   }
 
   Widget _buildCurrentForm(BuildContext context) {
@@ -93,9 +97,11 @@ class _AuthPage extends State<AuthPage> {
         return PhoneAuthForm(
           onSendCode: (phone) {
             debugPrint("WYSYŁANIE KODU NA: $phone");
+            context.read<UserRepository>().sendVerificationCode(phone);
           },
-          onVerifyCode: (otp) {
+          onVerifyCode: (phone, otp) {
             debugPrint("WERYFIKACJA KODU: $otp");
+            context.read<UserRepository>().createUserByPhone(email: '', login: "User", phone: phone, code: otp);
           },
         );
 

@@ -128,7 +128,7 @@ class _TestAppState extends State<TestApp> {
     debugPrint("-> Registering new user...");
     final email = "test${DateTime.now().millisecondsSinceEpoch}@example.com";
     final password = "qwerty123";
-    final directUserId = await auth.register(email, password);
+    final directUserId = await auth.emailRegister(email, password);
     debugPrint("Registered user with UID: $directUserId");
 
     // Verify the user is actually signed in
