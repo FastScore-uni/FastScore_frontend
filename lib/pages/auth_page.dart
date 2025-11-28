@@ -93,9 +93,11 @@ class _AuthPage extends State<AuthPage> {
         return PhoneAuthForm(
           onSendCode: (phone) {
             debugPrint("WYSYŁANIE KODU NA: $phone");
+            context.read<UserRepository>().sendVerificationCode(phone);
           },
-          onVerifyCode: (otp) {
+          onVerifyCode: (phone, otp) {
             debugPrint("WERYFIKACJA KODU: $otp");
+            context.read<UserRepository>().createUserByPhone(email: '', login: "User", phone: phone, code: otp);
           },
         );
 

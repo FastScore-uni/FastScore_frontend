@@ -34,6 +34,32 @@ class UserRepository {
     return UserModel.fromJson(uid, data);
   }
 
+  Future<void> sendVerificationCode(String phoneNum) async {
+    _auth.phoneSendCode(phoneNum);
+  }
+
+  Future<UserModel> createUserByPhone({
+    required String email,
+    required String login,
+    required String phone,
+    required String code,
+  }) async {
+    // 1. tworzymy konto w auth
+    final uid = await _auth.phoneRegister(phone, code);
+
+    // 2. zapisujemy dokument użytkownika
+    final data = {
+      'login': login,
+      'email': email,
+      'phone': phone,
+      'settings': {'language': 'pl'},
+    };
+
+    await _db.setUser(uid, data);
+    data["id"] = uid;
+    return UserModel.fromJson(uid, data);
+  }
+
   Future<UserModel> signInUser({
     required String email,
     required String password,
