@@ -19,7 +19,7 @@ class UserRepository {
     required String phone,
   }) async {
     // 1. tworzymy konto w auth
-    final uid = await _auth.register(email, password);
+    final uid = await _auth.emailRegister(email, password);
 
     // 2. zapisujemy dokument użytkownika
     final data = {
@@ -30,7 +30,6 @@ class UserRepository {
     };
 
     await _db.setUser(uid, data);
-    data["id"] = uid;
     return UserModel.fromJson(uid, data);
   }
 
@@ -45,7 +44,7 @@ class UserRepository {
     required String code,
   }) async {
     // 1. tworzymy konto w auth
-    final uid = await _auth.phoneRegister(phone, code);
+    final uid = await _auth.phoneVerify(phone, code);
 
     // 2. zapisujemy dokument użytkownika
     final data = {
@@ -56,7 +55,14 @@ class UserRepository {
     };
 
     await _db.setUser(uid, data);
-    data["id"] = uid;
+    return UserModel.fromJson(uid, data);
+  }
+
+  Future<UserModel> verifyUserByGoogle() async {
+    final data = await _auth.googleVerify();
+
+    String uid = data['uid']!;
+    await _db.setUser(uid, data);
     return UserModel.fromJson(uid, data);
   }
 
@@ -65,7 +71,7 @@ class UserRepository {
     required String password,
   }) async {
     try {
-      final uid = await _auth.login(email, password);
+      final uid = await _auth.emailLogin(email, password);
       final userData = await getUser(uid);
       if (userData == null) {
         throw Exception("Brak danych użytkownika.");

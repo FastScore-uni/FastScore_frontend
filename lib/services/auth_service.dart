@@ -5,7 +5,7 @@ class AuthService {
   String? _phoneNumber;
   ConfirmationResult? _confirmationResult;
 
-  Future<String> login(String email, String password) async {
+  Future<String> emailLogin(String email, String password) async {
     final credential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -13,7 +13,7 @@ class AuthService {
     return credential.user!.uid;
   }
 
-  Future<String> register(String email, String password) async {
+  Future<String> emailRegister(String email, String password) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -21,20 +21,36 @@ class AuthService {
     return credential.user!.uid;
   }
 
+  Future<Map<String, String>> googleVerify() async {
+    GoogleAuthProvider googleProvider = GoogleAuthProvider();
+    googleProvider.addScope(
+      'https://www.googleapis.com/auth/contacts.readonly',
+    );
+    googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
+
+    User user = (await _auth.signInWithPopup(googleProvider)).user!;
+    String email = user.email!;
+    String login = email.split('@').first;
+    final data = {
+      'uid': user.uid,
+      'login': user.displayName ?? login,
+      'email': email,
+      'phone': user.phoneNumber ?? '',
+    };
+    return data;
+  }
+
   Future<void> phoneSendCode(String phoneNum) async {
     _confirmationResult = null;
     _phoneNumber = null;
 
-
-    _confirmationResult = await _auth.signInWithPhoneNumber(
-      phoneNum
-    );
+    _confirmationResult = await _auth.signInWithPhoneNumber(phoneNum);
     if (_confirmationResult != null) {
       _phoneNumber = phoneNum;
     }
   }
 
-  Future<String> phoneRegister(String phoneNum, String code) async {
+  Future<String> phoneVerify(String phoneNum, String code) async {
     if (phoneNum != _phoneNumber) {
       return "";
     }
