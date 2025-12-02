@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,6 @@ class _NotesPageState extends State<NotesPage> {
     try {
       await backend.fetchXml();
       final wavBytes = await backend.convertMidiToWav();
-
       setState(() {
         _audioBytes = wavBytes;
         _loading = false;
@@ -190,15 +190,12 @@ class _NotesPageState extends State<NotesPage> {
                 ),
                 // Notes display area
                 Expanded(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: Center(
+                  child: Center(
                       child: HtmlWidget(
                         key: htmlWidgetKey,
                         xmlContent: BackendService().xmlContent,
                       ),
                     ),
-                  ),
                 ),
                 // Audio player at the bottom
                 AudioPlayerBar(
