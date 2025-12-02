@@ -76,7 +76,7 @@ class SongItem extends StatelessWidget {
                       ),
                       SizedBox(height: isMobile ? 2 : 4),
                       Text(
-                        duration,
+                        "Original song duration: $duration",
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: isMobile ? 13 : 14,

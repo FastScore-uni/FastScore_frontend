@@ -40,7 +40,8 @@ class _FileDropZoneState extends State<FileDropZone> {
     final mimeType = lookupMimeType('', headerBytes: headerBytes);
 
     return mimeType == 'audio/mp3' || mimeType == 'audio/mpeg' ||
-    mimeType == 'audio/wav' || mimeType == 'audio/x-wav';
+    mimeType == 'audio/wav' || mimeType == 'audio/x-wav' || mimeType == 'audio/wave'
+     || mimeType == 'audio/mpeg3' || mimeType == 'audio/x-mpeg-3';
   }
 
   bool _validateFileSize(List<int> fileData){
