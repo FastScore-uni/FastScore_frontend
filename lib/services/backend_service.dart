@@ -58,7 +58,6 @@ class BackendService {
             contentType: MediaType('audio', 'mpeg'),
           ),
         );
-      request.headers['Accept'] = 'application/xml';
       request.headers['Accept'] = 'application/json';
       
       // Add metadata
@@ -78,12 +77,11 @@ class BackendService {
       final response = await request.send();
 
       if (response.statusCode == 200) {
-        xmlContent = await response.stream.bytesToString();
+        final responseBody = await response.stream.bytesToString();
         _unfetchedData = false;
         _previousModel = _currentModel;
         error = '';
 
-        final responseBody = await response.stream.bytesToString();
         final jsonResponse = jsonDecode(responseBody);
         
         xmlContent = jsonResponse['xml_content'] ?? '';

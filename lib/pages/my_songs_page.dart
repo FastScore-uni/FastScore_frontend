@@ -2,14 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/song_item.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fastscore_frontend/services/backend_service.dart';
 
 
 class MySongsPage extends StatelessWidget {
   const MySongsPage({super.key});
 
+  Color _getColor(String? colorName) {
+    // Simple mapping or random if needed. 
+    // Since backend doesn't save color yet, we can use a default or hash based on title.
+    if (colorName == null) return Colors.blue.shade200;
+    // Add more logic if needed
+    return Colors.blue.shade200;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
+    final user = FirebaseAuth.instance.currentUser;
     
     return ResponsiveLayout(
       child: Scaffold(
@@ -20,144 +32,92 @@ class MySongsPage extends StatelessWidget {
           automaticallyImplyLeading: false,
           title: const Text('Moje utwory'),
         ),
-        body: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-            },
-          ),
-          child: ListView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 24,
-              vertical: isMobile ? 12 : 16,
-            ),
-            children: [
-                      SongItem(
-                            date: '2025-10-20',
-                            title: 'Poranny blask',
-                            duration: '3:20',
-                            format: 'wav',
-                            color: Colors.green.shade200,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Poranny blask',
-                                  'songId': 'song_1',
-                                },
-                              );
-                            },
-                          ),
-                          SongItem(
-                            date: '2025-10-15',
-                            title: 'Taniec liści',
-                            duration: '1:24',
-                            format: 'mp3',
-                            color: Colors.orange.shade200,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Taniec liści',
-                                  'songId': 'song_2',
-                                },
-                              );
-                            },
-                          ),
-                          SongItem(
-                            date: '2025-10-02',
-                            title: 'Mglisty poranek',
-                            duration: '0:34',
-                            format: 'wav',
-                            color: Colors.purple.shade200,
-                            isSelected: true,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Mglisty poranek',
-                                  'songId': 'song_3',
-                                },
-                              );
-                            },
-                          ),
-                          SongItem(
-                            date: '2025-09-25',
-                            title: 'Jesienny dół',
-                            duration: '7:05',
-                            format: 'wav',
-                            color: Colors.grey.shade400,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Jesienny dół',
-                                  'songId': 'song_4',
-                                },
-                              );
-                            },
-                          ),
-                          SongItem(
-                            date: '2025-09-15',
-                            title: 'Zgasłe gwiazdy',
-                            duration: '2:21',
-                            format: 'mp3',
-                            color: Colors.lime.shade300,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Zgasłe gwiazdy',
-                                  'songId': 'song_5',
-                                },
-                              );
-                            },
-                          ),
-                          SongItem(
-                            date: '2025-09-05',
-                            title: 'Come by the Hills',
-                            duration: '1:57',
-                            format: 'mp3',
-                            color: Colors.yellow.shade200,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Come by the Hills',
-                                  'songId': 'song_6',
-                                },
-                              );
-                            },
-                            // Example with image URL (uncomment to test):
-                            // imageUrl: 'https://example.com/album-art.jpg',
-                          ),
-                          SongItem(
-                            date: '2025-08-28',
-                            title: 'Silent Waves',
-                            duration: '4:12',
-                            format: 'wav',
-                            color: Colors.cyan.shade200,
-                            isSelected: false,
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                '/notes',
-                                arguments: {
-                                  'title': 'Silent Waves',
-                                  'songId': 'song_7',
-                                },
-                              );
-                            },
-                          ),
-                        ],
+        body: user == null 
+          ? const Center(child: Text('Zaloguj się, aby zobaczyć swoje utwory'))
+          : StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .collection('songs')
+                .orderBy('createdAt', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Wystąpił błąd: ${snapshot.error}'));
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final docs = snapshot.data?.docs ?? [];
+
+              if (docs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.music_note, size: 64, color: Theme.of(context).colorScheme.outline),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Brak zapisanych utworów',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 );
+              }
+
+              return ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                  },
+                ),
+                child: ListView.builder(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 16 : 24,
+                    vertical: isMobile ? 12 : 16,
+                  ),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    
+                    return SongItem(
+                      date: data['date'] ?? '',
+                      title: data['title'] ?? 'Utwór bez tytułu',
+                      duration: data['duration'] ?? '0:00',
+                      format: data['format'] ?? 'MP3',
+                      color: _getColor(data['color']),
+                      isSelected: false,
+                      onTap: () {
+                        // Update BackendService with the selected song's data
+                        final backendService = BackendService();
+                        backendService.xmlUrl = data['xmlUrl'] ?? '';
+                        backendService.midiUrl = data['midiUrl'] ?? '';
+                        backendService.audioUrl = data['audioUrl'] ?? '';
+                        backendService.title = data['title'] ?? '';
+                        backendService.firestoreId = doc.id;
+                        
+                        Navigator.of(context).pushNamed(
+                          '/notes',
+                          arguments: {
+                            'title': data['title'] ?? 'Utwór bez tytułu',
+                            'songId': doc.id,
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+      ),
+    );
   }
 }
