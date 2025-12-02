@@ -1,5 +1,7 @@
 import 'package:fastscore_frontend/models/transcription_model.dart';
 import 'package:http/http.dart';
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class BackendService {
   // Klasa singletonowa do komunikacji z api na backendzie
@@ -11,6 +13,9 @@ class BackendService {
     return _instance;
   }
 
+  final String apiUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
+
+
   TranscriptionModel _currentModel = TranscriptionModel.basicPitch;
   TranscriptionModel? _previousModel;
 
@@ -20,10 +25,19 @@ class BackendService {
   String xmlContent = '';
   String error = '';
 
-  void setAudioFile(String fileName, List<int> fileData) {
+  String title = '';
+  String duration = '';
+  String xmlUrl = '';
+  String midiUrl = '';
+  String audioUrl = '';
+  String firestoreId = '';
+
+  void setAudioFile(String fileName, List<int> fileData, {String? title, String? duration}) {
     _audioFileName = fileName;
     _audioFileData = fileData;
     _unfetchedData = true;
+    if (title != null) this.title = title;
+    if (duration != null) this.duration = duration;
   }
 
   set currentModel(TranscriptionModel newModel){
@@ -45,6 +59,21 @@ class BackendService {
           ),
         );
       request.headers['Accept'] = 'application/xml';
+      request.headers['Accept'] = 'application/json';
+      
+      // Add metadata
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        request.fields['user_id'] = user.uid;
+      }
+      
+      if (title.isNotEmpty) {
+        request.fields['title'] = title;
+      }
+      
+      if (duration.isNotEmpty) {
+        request.fields['duration'] = duration;
+      }
 
       final response = await request.send();
 
@@ -52,6 +81,16 @@ class BackendService {
         xmlContent = await response.stream.bytesToString();
         _unfetchedData = false;
         _previousModel = _currentModel;
+        error = '';
+
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = jsonDecode(responseBody);
+        
+        xmlContent = jsonResponse['xml_content'] ?? '';
+        xmlUrl = jsonResponse['xml_url'] ?? '';
+        midiUrl = jsonResponse['midi_url'] ?? '';
+        audioUrl = jsonResponse['audio_url'] ?? '';
+        firestoreId = jsonResponse['firestoreId'] ?? '';
       } else {
         error = 'Błąd: ${response.statusCode}';
       }
