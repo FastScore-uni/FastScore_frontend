@@ -307,10 +307,15 @@ class _MusicPageState extends State<MusicPage> {
 
   void _handleFileDropped(String fileName, List<int> fileData) {
     _resetRecording();
+    
+    // Set title from filename (without extension)
+    final title = fileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    _titleController.text = title;
+
     BackendService().setAudioFile(
       fileName, 
       fileData,
-      title: _titleController.text.isEmpty ? fileName : _titleController.text,
+      title: title,
     );
     setState(() {
       _isFileDropped = true;

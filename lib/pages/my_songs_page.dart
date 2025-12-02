@@ -97,11 +97,13 @@ class MySongsPage extends StatelessWidget {
                       onTap: () {
                         // Update BackendService with the selected song's data
                         final backendService = BackendService();
-                        backendService.xmlUrl = data['xmlUrl'] ?? '';
-                        backendService.midiUrl = data['midiUrl'] ?? '';
-                        backendService.audioUrl = data['audioUrl'] ?? '';
-                        backendService.title = data['title'] ?? '';
-                        backendService.firestoreId = doc.id;
+                        backendService.setExistingSong(
+                          data['xmlUrl'] ?? '',
+                          data['midiUrl'] ?? '',
+                          data['audioUrl'] ?? '',
+                          data['title'] ?? '',
+                          doc.id,
+                        );
                         
                         Navigator.of(context).pushNamed(
                           '/notes',

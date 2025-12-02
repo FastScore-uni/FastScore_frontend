@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 class SplitButton extends StatefulWidget {
   final String label;
@@ -47,14 +48,16 @@ class _SplitButtonState extends State<SplitButton> {
         final option = entry.value;
         return PopupMenuItem<int>(
           value: index,
-          child: Row(
-            children: [
-              if (option.icon != null) ...[
-                Icon(option.icon, size: 20),
-                const SizedBox(width: 12),
+          child: PointerInterceptor(
+            child: Row(
+              children: [
+                if (option.icon != null) ...[
+                  Icon(option.icon, size: 20),
+                  const SizedBox(width: 12),
+                ],
+                Text(option.label),
               ],
-              Text(option.label),
-            ],
+            ),
           ),
         );
       }).toList(),

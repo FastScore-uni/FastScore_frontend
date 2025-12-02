@@ -40,11 +40,39 @@ class BackendService {
     if (duration != null) this.duration = duration;
   }
 
+  void setExistingSong(String xmlUrl, String midiUrl, String audioUrl, String title, String firestoreId) {
+    this.xmlUrl = xmlUrl;
+    this.midiUrl = midiUrl;
+    this.audioUrl = audioUrl;
+    this.title = title;
+    this.firestoreId = firestoreId;
+    
+    this.xmlContent = ''; // Clear content so it forces reload
+    this._unfetchedData = false; // Do not try to upload/convert
+    this._audioFileData = []; // Clear audio data
+  }
+
   set currentModel(TranscriptionModel newModel){
     _currentModel = newModel;
   }
 
   Future<void> fetchXml() async {
+    // If we have an XML URL but no content, fetch it directly
+    if (!_unfetchedData && xmlUrl.isNotEmpty && xmlContent.isEmpty) {
+      try {
+        final response = await get(Uri.parse(xmlUrl));
+        if (response.statusCode == 200) {
+          xmlContent = response.body;
+          error = '';
+        } else {
+          error = 'Błąd pobierania XML: ${response.statusCode}';
+        }
+      } catch (e) {
+        error = 'Nie udało się pobrać XML: $e';
+      }
+      return;
+    }
+
     if(!_unfetchedData && _previousModel == _currentModel) {
       return;
     }
