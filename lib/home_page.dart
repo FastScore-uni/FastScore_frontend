@@ -138,7 +138,7 @@ class _MusicPageState extends State<MusicPage> {
     try {
       if (await _recorder.hasPermission()) {
         const config = RecordConfig(
-          encoder: AudioEncoder.aacLc,
+          encoder: AudioEncoder.opus,
           sampleRate: 44100,
           numChannels: 1,
           echoCancel: true,
@@ -222,7 +222,7 @@ class _MusicPageState extends State<MusicPage> {
 
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
-      BackendService().setAudioFile('recording.m4a', _audioBytes!);
+      BackendService().setAudioFile('recording.opus', _audioBytes!);
     }
   }
 

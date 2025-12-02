@@ -34,13 +34,34 @@ class _FileDropZoneState extends State<FileDropZone> {
   int _calculateAlpha(int baseAlpha, double ratio) {
     return (baseAlpha * ratio).round().clamp(0, 255);
   }
-  
-  bool _validateFileType(List<int> fileData){
-    final headerBytes = fileData.take(12).toList();
-    final mimeType = lookupMimeType('', headerBytes: headerBytes);
 
-    return mimeType == 'audio/mp3' || mimeType == 'audio/mpeg' ||
-    mimeType == 'audio/wav' || mimeType == 'audio/x-wav';
+  bool _validateFileType(List<int> fileData) {
+    final headerBytes = fileData.take(12).toList();
+
+    String? mimeType = lookupMimeType('', headerBytes: headerBytes);
+    debugPrint('Typ MIME wykryty : $mimeType');
+
+
+    if (mimeType == null &&
+        headerBytes.length >= 3 &&
+        headerBytes[0] == 0x49 && // 'I'
+        headerBytes[1] == 0x44 && // 'D'
+        headerBytes[2] == 0x33) { // '3'
+      mimeType = 'audio/mpeg';
+    }
+
+    if (headerBytes[0] == 0xFF && (headerBytes[1] & 0xE0) == 0xE0) {
+      return true;
+    }
+
+    const validMimeTypes = {
+      'audio/mp3',
+      'audio/mpeg',
+      'audio/wav',
+      'audio/x-wav',
+    };
+
+    return validMimeTypes.contains(mimeType);
   }
 
   bool _validateFileSize(List<int> fileData){
