@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -41,7 +42,6 @@ class _NotesPageState extends State<NotesPage> {
     try {
       await backend.fetchXml();
       final wavBytes = await backend.convertMidiToWav();
-
       setState(() {
         _audioBytes = wavBytes;
         _loading = false;
@@ -79,12 +79,11 @@ class _NotesPageState extends State<NotesPage> {
       await saveBytes(widget.songTitle, "pdf", pdfBytes);
     } 
     else if (_selectedDownloadIndex == 1) {
-      final bytes = await backend.downloadXml();
-      await saveBytes(widget.songTitle, "musicxml", bytes);
+      final xmlBytes = utf8.encode(BackendService().xmlContent);
+      await saveBytes(widget.songTitle, "musicxml", xmlBytes);
     } 
     else if (_selectedDownloadIndex == 2) {
-      final bytes = await backend.downloadMidi();
-      await saveBytes(widget.songTitle, "midi", bytes);
+      await saveBytes(widget.songTitle, "midi", backend.midiBytes);
     }
 
     } catch (e) {
@@ -171,15 +170,12 @@ class _NotesPageState extends State<NotesPage> {
                 ),
                 // Notes display area
                 Expanded(
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    child: Center(
+                  child: Center(
                       child: HtmlWidget(
                         key: htmlWidgetKey,
                         xmlContent: BackendService().xmlContent,
                       ),
                     ),
-                  ),
                 ),
                 // Audio player at the bottom
                 AudioPlayerBar(
