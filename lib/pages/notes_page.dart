@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/services/backend_service.dart';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
@@ -73,6 +72,29 @@ class _NotesPageState extends State<NotesPage> {
     final option = _downloadOptions[_selectedDownloadIndex];
     debugPrint('Downloading: ${option.label}');
     
+    // ---------------------------------
+    // WERSJA DLA LOKALNEGO BACKENDU
+    // ---------------------------------
+
+  // final backend = BackendService();
+  // try {
+  //   if (_selectedDownloadIndex == 0) {
+  //     final pdfBytes = await backend.downloadPdf();
+  //     await saveBytes(widget.songTitle, "pdf", pdfBytes);
+  //   } 
+  //   else if (_selectedDownloadIndex == 1) {
+  //     final xmlBytes = utf8.encode(BackendService().xmlContent);
+  //     await saveBytes(widget.songTitle, "musicxml", xmlBytes);
+  //   } 
+  //   else if (_selectedDownloadIndex == 2) {
+  //     await saveBytes(widget.songTitle, "midi", backend.midiBytes);
+  //   }
+
+  //   } catch (e) {
+  //     print("Błąd pobierania: $e");
+  //   }
+  // }
+
     String? url;
     if (option.label == 'Pobierz XML') {
       url = BackendService().xmlUrl;

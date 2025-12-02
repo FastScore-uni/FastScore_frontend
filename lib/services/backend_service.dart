@@ -4,8 +4,6 @@ import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:fastscore_frontend/models/transcription_model.dart';
 
 class BackendService {
   // Klasa singletonowa do komunikacji z api na backendzie
@@ -83,28 +81,26 @@ class BackendService {
         request.fields['duration'] = duration;
       }
 
-      final streamed = await request.send();
-      final response = await http.Response.fromStream(streamed);
+      final response = await request.send();
+      // final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         final jsonResponse = jsonDecode(responseBody);
-        xmlContent = jsonResponse['xml'] as String;
-        // final data = jsonDecode(response.body);
-        // xmlContent = data['xml'] as String;
-        final midiB64 = jsonResponse['midi_base64'] as String;
-        midiBytes = base64Decode(midiB64);
 
         _unfetchedData = false;
         _previousModel = _currentModel;
         error = '';
 
         
+        xmlContent = jsonResponse['xml'] as String;
+        final midiB64 = jsonResponse['midi_base64'] as String;
+        midiBytes = base64Decode(midiB64);
         // xmlContent = jsonResponse['xml_content'] ?? '';
-        // xmlUrl = jsonResponse['xml_url'] ?? '';
-        // midiUrl = jsonResponse['midi_url'] ?? '';
-        // audioUrl = jsonResponse['audio_url'] ?? '';
-        // firestoreId = jsonResponse['firestoreId'] ?? '';
+        xmlUrl = jsonResponse['xml_url'] ?? '';
+        midiUrl = jsonResponse['midi_url'] ?? '';
+        audioUrl = jsonResponse['audio_url'] ?? '';
+        firestoreId = jsonResponse['firestoreId'] ?? '';
       } else {
         error = 'Błąd: ${response.statusCode}';
       }
