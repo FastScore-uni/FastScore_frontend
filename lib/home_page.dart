@@ -190,6 +190,7 @@ class _MusicPageState extends State<MusicPage> {
     if (!_isRecording) return;
 
     _stopTimer();
+    _recordDuration = _stopwatch.elapsed;
     final String? path = await _recorder.stop();
 
     if (path == null) {
@@ -305,22 +306,49 @@ class _MusicPageState extends State<MusicPage> {
     await _audioPlayer.seek(position);
   }
 
-  void _handleFileDropped(String fileName, List<int> fileData) {
+  Future<void> _handleFileDropped(String fileName, List<int> fileData) async {
     _resetRecording();
     
     // Set title from filename (without extension)
     final title = fileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     _titleController.text = title;
 
+    String duration = "0:00";
+    try {
+      await _audioPlayer.setSource(BytesSource(Uint8List.fromList(fileData)));
+      
+      Duration? d = await _audioPlayer.getDuration();
+      
+      // If duration is null or zero, try waiting for the stream
+      if (d == null || d.inSeconds == 0) {
+        try {
+          d = await _audioPlayer.onDurationChanged.first.timeout(const Duration(milliseconds: 500));
+        } catch (e) {
+          debugPrint("Timeout waiting for duration: $e");
+        }
+      }
+
+      if (d != null && d.inSeconds > 0) {
+        duration = _formatDuration(d);
+        setState(() {
+          _playbackDuration = d!;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error getting duration: $e");
+    }
+
     BackendService().setAudioFile(
       fileName, 
       fileData,
       title: title,
+      duration: duration,
     );
     setState(() {
       _isFileDropped = true;
+      _audioBytes = Uint8List.fromList(fileData);
     });
-    debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
+    debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów, Czas: $duration");
   }
 
   String _formatDuration(Duration d) {
