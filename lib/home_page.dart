@@ -44,6 +44,8 @@ class _MusicPageState extends State<MusicPage> {
         ? 'Utwór bez tytułu' 
         : _titleController.text;
     
+    BackendService().title = title;
+    
     Navigator.of(context).pushNamed(
       '/notes',
       arguments: {
@@ -130,12 +132,22 @@ class _MusicPageState extends State<MusicPage> {
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
       // TODO: Wysłanie danych
+      BackendService().setAudioFile(
+        'recording.wav', 
+        _audioBytes!, 
+        title: _titleController.text.isEmpty ? 'Nagranie' : _titleController.text,
+        duration: _formatDuration(_recordDuration),
+      );
     }
   }
 
 
   void _handleFileDropped(String fileName, List<int> fileData) {
-    BackendService().setAudioFile(fileName, fileData);
+    BackendService().setAudioFile(
+      fileName, 
+      fileData,
+      title: _titleController.text.isEmpty ? fileName : _titleController.text,
+    );
     setState(() {
       // Handle file dropped
     });

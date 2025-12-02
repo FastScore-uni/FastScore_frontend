@@ -3,6 +3,8 @@ import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/split_button.dart';
 import 'package:fastscore_frontend/widgets/audio_player_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:fastscore_frontend/backend_service.dart';
 
 class NotesPage extends StatefulWidget {
   final String songTitle;
@@ -30,10 +32,45 @@ class _NotesPageState extends State<NotesPage> {
     SplitButtonOption(label: 'Pobierz MIDI', icon: Icons.audio_file),
   ];
 
-  void _download() {
+  Future<void> _download() async {
     final option = _downloadOptions[_selectedDownloadIndex];
     debugPrint('Downloading: ${option.label}');
-    // Perform download based on selected option
+    
+    String? url;
+    if (option.label == 'Pobierz XML') {
+      url = BackendService().xmlUrl;
+    } else if (option.label == 'Pobierz MIDI') {
+      url = BackendService().midiUrl;
+    } else if (option.label == 'Pobierz PDF') {
+       debugPrint('PDF download not yet supported');
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Pobieranie PDF nie jest jeszcze dostępne')),
+         );
+       }
+       return;
+    }
+
+    if (url != null && url.isNotEmpty) {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        debugPrint('Could not launch $url');
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Nie można otworzyć linku: $url')),
+            );
+        }
+      }
+    } else {
+        debugPrint('URL is empty');
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Link do pliku nie jest dostępny')),
+            );
+        }
+    }
   }
 
   void _togglePlayPause() {
