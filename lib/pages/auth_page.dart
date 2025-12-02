@@ -41,26 +41,41 @@ class _AuthPage extends State<AuthPage> {
   void _switchToEmail() => setState(() => _currentView = AuthView.emailLogin);
   void _switchToSignUp() => setState(() => _currentView = AuthView.emailSignUp);
 
-  void _signInWithEmail(BuildContext context, String email, String password) {
+  Future<void> _signInWithEmail(BuildContext context, String email, String password) async{
     debugPrint("Logowanie przez email...");
-    // Logowanie z email
+    final repo = context.read<UserRepository>();
+    try {
+      await repo.signInUser(email: email, password: password);
+      debugPrint("Logowanie udane");
+      if (context.mounted){
+        Navigator.of(context).pushNamed('/');
+      }
+    } catch (e) {
+      debugPrint("Logowanie nieudane: $e");
+    }
   }
 
-  void _signUpWithEmail(BuildContext context, String email, String password) async {
+  Future<void> _signUpWithEmail(BuildContext context, String email, String password) async {
     debugPrint("Rejestracja przez email...");
     final repo = context.read<UserRepository>();
     try {
       String login = email.split('@').first;
       await repo.createUser(email: email, password: password, login: login, phone: "");
-      _switchToSignUp();
-    } catch (error) {
-      debugPrint("Rejestracja nieudana: $error");
+      if (context.mounted){
+        Navigator.of(context).pushNamed('/');
+      }
+    } catch (e) {
+      debugPrint("Rejestracja nieudana: $e");
     }
   }
 
   void _signInWithGoogle(BuildContext context) {
     debugPrint("Logowanie przez Google...");
-    // Logowanie z Google
+    try {
+    context.read<UserRepository>().verifyUserByGoogle();
+    } catch (e) {
+      debugPrint("Rejestracja nieudana: $e");
+    }
   }
 
   Widget _buildCurrentForm(BuildContext context) {
@@ -82,9 +97,11 @@ class _AuthPage extends State<AuthPage> {
         return PhoneAuthForm(
           onSendCode: (phone) {
             debugPrint("WYSYŁANIE KODU NA: $phone");
+            context.read<UserRepository>().sendVerificationCode(phone);
           },
-          onVerifyCode: (otp) {
+          onVerifyCode: (phone, otp) {
             debugPrint("WERYFIKACJA KODU: $otp");
+            context.read<UserRepository>().createUserByPhone(email: '', login: "User", phone: phone, code: otp);
           },
         );
 

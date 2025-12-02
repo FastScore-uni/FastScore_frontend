@@ -7,7 +7,7 @@ import 'package:fastscore_frontend/widgets/auth_text_field.dart';
 
 class PhoneAuthForm extends StatefulWidget{
   final Function(String phoneNumber) onSendCode;
-  final Function(String otpCode) onVerifyCode;
+  final Function(String phoneNumber, String otpCode) onVerifyCode;
 
   const PhoneAuthForm({
     super.key,
@@ -43,7 +43,8 @@ class _PhoneAuthFormState extends State<PhoneAuthForm>{
         setState(() => _codeSent = true);
       }
     } else {
-      widget.onVerifyCode(_otpController.text);
+      debugPrint("verifying number: $_fullPhoneNumber");
+      widget.onVerifyCode(_fullPhoneNumber, _otpController.text);
     }
   }
 

@@ -10,6 +10,8 @@ class UserRepository {
 
   UserRepository(this._auth, this._db);
 
+  Stream<String?> get onAuthStateChange => _auth.onAuthStateChange;
+
   Future<UserModel> createUser({
     required String email,
     required String password,
@@ -17,7 +19,7 @@ class UserRepository {
     required String phone,
   }) async {
     // 1. tworzymy konto w auth
-    final uid = await _auth.register(email, password);
+    final uid = await _auth.emailRegister(email, password);
 
     // 2. zapisujemy dokument użytkownika
     final data = {
@@ -28,8 +30,60 @@ class UserRepository {
     };
 
     await _db.setUser(uid, data);
-    data["id"] = uid;
     return UserModel.fromJson(uid, data);
+  }
+
+  Future<void> sendVerificationCode(String phoneNum) async {
+    _auth.phoneSendCode(phoneNum);
+  }
+
+  Future<UserModel> createUserByPhone({
+    required String email,
+    required String login,
+    required String phone,
+    required String code,
+  }) async {
+    // 1. tworzymy konto w auth
+    final uid = await _auth.phoneVerify(phone, code);
+
+    // 2. zapisujemy dokument użytkownika
+    final data = {
+      'login': login,
+      'email': email,
+      'phone': phone,
+      'settings': {'language': 'pl'},
+    };
+
+    await _db.setUser(uid, data);
+    return UserModel.fromJson(uid, data);
+  }
+
+  Future<UserModel> verifyUserByGoogle() async {
+    final data = await _auth.googleVerify();
+
+    String uid = data['uid']!;
+    await _db.setUser(uid, data);
+    return UserModel.fromJson(uid, data);
+  }
+
+  Future<UserModel> signInUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final uid = await _auth.emailLogin(email, password);
+      final userData = await getUser(uid);
+      if (userData == null) {
+        throw Exception("Brak danych użytkownika.");
+      }
+      return userData;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> signOutUser() async {
+    return await _auth.logout();
   }
 
   Future<UserModel?> getUser(String id) async {
