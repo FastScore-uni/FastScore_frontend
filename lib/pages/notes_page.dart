@@ -7,7 +7,6 @@ import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/split_button.dart';
 import 'package:fastscore_frontend/widgets/audio_player_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:fastscore_frontend/backend_service.dart';
 import 'package:file_saver/file_saver.dart';
 
 class NotesPage extends StatefulWidget {
