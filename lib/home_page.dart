@@ -140,7 +140,7 @@ class _MusicPageState extends State<MusicPage> {
     try {
       if (await _recorder.hasPermission()) {
         const config = RecordConfig(
-          encoder: AudioEncoder.aacLc,
+          encoder: AudioEncoder.opus,
           sampleRate: 44100,
           numChannels: 1,
           echoCancel: true,
@@ -225,7 +225,7 @@ class _MusicPageState extends State<MusicPage> {
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
       BackendService().setAudioFile(
-        'recording.wav', 
+        'recording.opus', 
         _audioBytes!, 
         title: _titleController.text.isEmpty ? 'Nagranie' : _titleController.text,
         duration: _formatDuration(_recordDuration),
@@ -257,7 +257,7 @@ class _MusicPageState extends State<MusicPage> {
     } catch (e) {
       debugPrint("Błąd wznawiania nagrywania: $e");
       BackendService().setAudioFile(
-        'recording.wav', 
+        'recording.opus', 
         _audioBytes!, 
         title: _titleController.text.isEmpty ? 'Nagranie' : _titleController.text,
         duration: _formatDuration(_recordDuration),

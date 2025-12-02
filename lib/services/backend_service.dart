@@ -1,4 +1,5 @@
 import 'package:fastscore_frontend/models/transcription_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -49,6 +50,7 @@ class BackendService {
       return;
     }
     try { 
+      debugPrint("Fetching ...");
       final request = MultipartRequest('POST', Uri.parse(_currentModel.url))
         ..files.add(
           MultipartFile.fromBytes(
@@ -83,14 +85,14 @@ class BackendService {
         _previousModel = _currentModel;
         error = '';
 
-        final responseBody = await response.stream.bytesToString();
-        final jsonResponse = jsonDecode(responseBody);
+        // final responseBody = await response.stream.bytesToString();
+        // final jsonResponse = jsonDecode(responseBody);
         
-        xmlContent = jsonResponse['xml_content'] ?? '';
-        xmlUrl = jsonResponse['xml_url'] ?? '';
-        midiUrl = jsonResponse['midi_url'] ?? '';
-        audioUrl = jsonResponse['audio_url'] ?? '';
-        firestoreId = jsonResponse['firestoreId'] ?? '';
+        // xmlContent = jsonResponse['xml_content'] ?? '';
+        // xmlUrl = jsonResponse['xml_url'] ?? '';
+        // midiUrl = jsonResponse['midi_url'] ?? '';
+        // audioUrl = jsonResponse['audio_url'] ?? '';
+        // firestoreId = jsonResponse['firestoreId'] ?? '';
       } else {
         error = 'Błąd: ${response.statusCode}';
       }
