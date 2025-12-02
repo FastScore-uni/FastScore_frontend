@@ -1,7 +1,9 @@
 import 'package:fastscore_frontend/models/transcription_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
 class BackendService {
   // Klasa singletonowa do komunikacji z api na backendzie
@@ -13,7 +15,8 @@ class BackendService {
     return _instance;
   }
 
-  final String apiUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
+  final String originUrl = 'http://127.0.0.1:8000';
+  // final String originUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
 
 
   TranscriptionModel _currentModel = TranscriptionModel.basicPitch;
@@ -23,6 +26,8 @@ class BackendService {
   List<int> _audioFileData = [];
   bool _unfetchedData = false;
   String xmlContent = '';
+  List<int> midiBytes = [];
+  List<int> wavBytes = [];
   String error = '';
 
   String title = '';
@@ -77,7 +82,8 @@ class BackendService {
       return;
     }
     try { 
-      final request = MultipartRequest('POST', Uri.parse(_currentModel.url))
+      debugPrint("Fetching ...");
+      final request = MultipartRequest('POST', Uri.parse(_currentModel.url(originUrl)))
         ..files.add(
           MultipartFile.fromBytes(
             'file',           // nazwa argumentu w api
@@ -103,16 +109,21 @@ class BackendService {
       }
 
       final response = await request.send();
+      // final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
+        final jsonResponse = jsonDecode(responseBody);
+
         _unfetchedData = false;
         _previousModel = _currentModel;
         error = '';
 
-        final jsonResponse = jsonDecode(responseBody);
         
-        xmlContent = jsonResponse['xml_content'] ?? '';
+        xmlContent = jsonResponse['xml'] as String;
+        final midiB64 = jsonResponse['midi_base64'] as String;
+        midiBytes = base64Decode(midiB64);
+        // xmlContent = jsonResponse['xml_content'] ?? '';
         xmlUrl = jsonResponse['xml_url'] ?? '';
         midiUrl = jsonResponse['midi_url'] ?? '';
         audioUrl = jsonResponse['audio_url'] ?? '';
@@ -126,47 +137,33 @@ class BackendService {
   }
 
   Future<List<int>> convertMidiToWav() async {
-    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
-
-    final response = await post(url);
+    final url = Uri.parse("$originUrl/midi-to-audio");
+    final request = http.MultipartRequest('POST', url)
+    ..files.add(
+      http.MultipartFile.fromBytes(
+        'midi_file',
+        midiBytes,
+        filename: 'upload.mid',
+        contentType: MediaType('audio', 'midi'),
+      ),
+    );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode != 200) {
       throw Exception("Błąd konwersji MIDI: ${response.statusCode}");
     }
-
-    return response.bodyBytes;
-  }
-
-  Future<List<int>> downloadFile(String url) async {
-    final response = await get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
-    } else {
-      throw Exception("Błąd pobierania pliku: ${response.statusCode}");
-    }
-  }
-
-  Future<List<int>> downloadMidi() async {
-    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
-
-    return downloadFile(url);
+    wavBytes = response.bodyBytes;
+    return wavBytes;
   }
 
   Future<List<int>> downloadPdf() async {
-    String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
-
-    return downloadFile(url);
+    final url = Uri.parse("$originUrl/xml-to-pdf");
+    final res = await post(url, body: {'xml': xmlContent});
+    if (res.statusCode == 200) {
+      return res.bodyBytes;
+    }
+    throw Exception("PDF failed ${res.statusCode}");
   }
 
-  Future<List<int>> downloadXml() async {
-    String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
-    
-    return downloadFile(url);
-  }
 }
