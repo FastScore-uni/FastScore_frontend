@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:fastscore_frontend/backend_service.dart';
+import 'package:fastscore_frontend/services/backend_service.dart';
 
 
 class HtmlWidget extends StatefulWidget {
-  const HtmlWidget({super.key});
+  final String xmlContent;
+
+
+  const HtmlWidget({super.key, required this.xmlContent});
 
   @override
   // ignore: no_logic_in_create_state
@@ -17,6 +20,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
   final String pageUrl = 'assets/score_loader.html';
   String htmlContent = '';
   String? injectedHtmlContent;
+  InAppWebViewController? controller;
 
   final BackendService backendService = BackendService();
   bool loading = false;
@@ -27,17 +31,11 @@ class HtmlWidgetState extends State<HtmlWidget> {
     process();
   }
 
-
+  InAppWebViewController? get webView => controller;
 
   Future<void> process() async {
-    backendService.fetchXml().then((_) {
-      if (backendService.error.isEmpty) {
-        _loadHtml();
-      }
-    });
-    setState(() {
-      loading = true;
-    });
+    super.initState();
+    _loadHtml();
   }
 
   Future<void> _loadHtml() async {
@@ -45,7 +43,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
       htmlContent = await rootBundle.loadString(pageUrl);
     }
     setState(() {
-      injectedHtmlContent = htmlContent.replaceFirst('{{MUSICXML_DATA}}', backendService.xmlContent);
+      injectedHtmlContent = htmlContent.replaceFirst('{{MUSICXML_DATA}}', widget.xmlContent);
       loading = false;
     });
   }
@@ -79,6 +77,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
 
     return InAppWebView(
       initialData: InAppWebViewInitialData(data: injectedHtmlContent!),
+      onWebViewCreated: (c) => controller = c,
     );
   }
 }

@@ -46,7 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '417992603605',
     projectId: 'fastscore-b82f4',
     authDomain: 'fastscore-b82f4.firebaseapp.com',
-    storageBucket: 'fastscore-b82f4.firebasestorage.app',
+    storageBucket: "fastscore-b82f4.firebasestorage.app",
     measurementId: 'G-8YSKG9NE4N',
   );
 

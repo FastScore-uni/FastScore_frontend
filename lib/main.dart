@@ -1,6 +1,10 @@
 import 'package:fastscore_frontend/home_page.dart';
+import 'package:fastscore_frontend/pages/account_switcher.dart';
 import 'package:fastscore_frontend/pages/my_songs_page.dart';
 import 'package:fastscore_frontend/pages/notes_page.dart';
+import 'package:fastscore_frontend/repositories.dart';
+import 'package:fastscore_frontend/services/auth_service.dart';
+import 'package:fastscore_frontend/services/firebase_service.dart';
 import 'package:fastscore_frontend/theme/theme_provider.dart';
 import 'package:fastscore_frontend/providers/sidebar_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,16 +15,28 @@ import 'firebase_options.dart';
 void main() async{
 
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+
+  final authService = AuthService();
+  final firebaseService = FirebaseService();
+
+  final userRepository = UserRepository(authService, firebaseService);
+  final pieceRepository = PieceRepository(firebaseService);
+
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => SidebarProvider()),
+        Provider<AuthService>(create: (_) => authService),
+        Provider<FirebaseService>(create: (_) => firebaseService),
+        Provider<UserRepository>(create: (_) => userRepository),
+        Provider<PieceRepository>(create: (_) => pieceRepository),
       ],
       child: const MyApp(),
     ),
@@ -44,6 +60,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/': (context) => const MusicPage(),
             '/my-songs': (context) => const MySongsPage(),
+            '/account': (context) => const AccountSwitcher(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/notes') {

@@ -47,6 +47,14 @@ dependencies:
   firebase_auth: ^6.1.2
   cloud_firestore: ^6.1.0
   url_launcher: ^6.3.2
+  firebase_storage: ^13.0.4
+  firebase_core: ^4.2.1
+  mime: ^2.0.0
+  flutter_login: ^6.0.0
+  font_awesome_flutter: ^10.12.0
+  intl_phone_number_input: ^0.7.5
+  just_audio: ^0.9.37
+  file_saver: ^0.3.1
 
 
 dev_dependencies:
@@ -72,6 +80,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/score_loader.html
+    - assets/images/
     # - assets/score.musicxml
   # To add assets to your application, add an assets section, like this:
   # assets:

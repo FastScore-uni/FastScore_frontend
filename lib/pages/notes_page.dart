@@ -1,10 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:fastscore_frontend/services/backend_service.dart';
 import 'package:fastscore_frontend/widgets/responsive_layout.dart';
 import 'package:fastscore_frontend/widgets/html_widget.dart';
 import 'package:fastscore_frontend/widgets/split_button.dart';
 import 'package:fastscore_frontend/widgets/audio_player_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fastscore_frontend/backend_service.dart';
+import 'package:file_saver/file_saver.dart';
 
 class NotesPage extends StatefulWidget {
   final String songTitle;
@@ -24,13 +28,47 @@ class _NotesPageState extends State<NotesPage> {
 
   final GlobalKey<HtmlWidgetState> htmlWidgetKey = GlobalKey<HtmlWidgetState>();
   int _selectedDownloadIndex = 0;
-  bool _isPlaying = false;
+  List<int>? _audioBytes;
+  bool _loading = true;
+
+    @override
+    void initState() {
+      super.initState();
+      _loadAudio();
+    }
+
+  Future<void> _loadAudio() async {
+    final backend = BackendService();
+
+    try {
+      await backend.fetchXml();
+      final wavBytes = await backend.convertMidiToWav();
+
+      setState(() {
+        _audioBytes = wavBytes;
+        _loading = false;
+      });
+
+    } catch (e) {
+      print("Błąd ładowania audio/XML: $e");
+      setState(() => _loading = false);
+    }
+  }
   
   final List<SplitButtonOption> _downloadOptions = const [
     SplitButtonOption(label: 'Pobierz PDF', icon: Icons.picture_as_pdf),
     SplitButtonOption(label: 'Pobierz XML', icon: Icons.code),
     SplitButtonOption(label: 'Pobierz MIDI', icon: Icons.audio_file),
   ];
+
+  Future<void> saveBytes(String name, String ext, List<int> bytes) async {
+    await FileSaver.instance.saveFile(
+      name: name,
+      fileExtension: ext,
+      bytes: Uint8List.fromList(bytes),
+      mimeType: MimeType.other,
+    );
+  }
 
   Future<void> _download() async {
     final option = _downloadOptions[_selectedDownloadIndex];
@@ -73,16 +111,25 @@ class _NotesPageState extends State<NotesPage> {
     }
   }
 
-  void _togglePlayPause() {
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text("Przetwarzanie pliku audio..."),
+            ],
+          ),
+        ),
+      );
+    }
+
     final isMobile = MediaQuery.of(context).size.width < 600;
-    
     return ResponsiveLayout(
       showNavigation: false,
       child: Scaffold(
@@ -149,6 +196,7 @@ class _NotesPageState extends State<NotesPage> {
                     child: Center(
                       child: HtmlWidget(
                         key: htmlWidgetKey,
+                        xmlContent: BackendService().xmlContent,
                       ),
                     ),
                   ),
@@ -156,9 +204,7 @@ class _NotesPageState extends State<NotesPage> {
                 // Audio player at the bottom
                 AudioPlayerBar(
                   songTitle: widget.songTitle,
-                  duration: '0:58',
-                  isPlaying: _isPlaying,
-                  onPlayPause: _togglePlayPause,
+                  audioBytes: _audioBytes,
                 ),
               ],
             ),
