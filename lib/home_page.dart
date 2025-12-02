@@ -87,9 +87,16 @@ class _MusicPageState extends State<MusicPage> {
   void _showNotes() {
     debugPrint('Wybrany model: $_selectedModel');
     BackendService().currentModel = _selectedModel;
-    final title = _titleController.text.isEmpty
-        ? 'Utwór bez tytułu'
-        : _titleController.text;
+    
+    String title = _titleController.text;
+    if (title.isEmpty) {
+      // If title field is empty, try to use the title from BackendService (which might be the filename)
+      if (BackendService().title.isNotEmpty) {
+        title = BackendService().title;
+      } else {
+        title = 'Utwór bez tytułu';
+      }
+    }
 
     BackendService().title = title;
     
