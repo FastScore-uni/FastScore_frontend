@@ -14,7 +14,8 @@ class BackendService {
     return _instance;
   }
 
-  final String apiUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
+  final String originUrl = 'http://127.0.0.1:8000';
+  // final String originUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
 
 
   TranscriptionModel _currentModel = TranscriptionModel.basicPitch;
@@ -51,7 +52,7 @@ class BackendService {
     }
     try { 
       debugPrint("Fetching ...");
-      final request = MultipartRequest('POST', Uri.parse(_currentModel.url))
+      final request = MultipartRequest('POST', Uri.parse(_currentModel.url(originUrl)))
         ..files.add(
           MultipartFile.fromBytes(
             'file',           // nazwa argumentu w api
@@ -80,13 +81,13 @@ class BackendService {
       final response = await request.send();
 
       if (response.statusCode == 200) {
-        xmlContent = await response.stream.bytesToString();
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = jsonDecode(responseBody);
+        xmlContent = jsonResponse['xml'] ?? '';
         _unfetchedData = false;
         _previousModel = _currentModel;
         error = '';
 
-        // final responseBody = await response.stream.bytesToString();
-        // final jsonResponse = jsonDecode(responseBody);
         
         // xmlContent = jsonResponse['xml_content'] ?? '';
         // xmlUrl = jsonResponse['xml_url'] ?? '';
@@ -104,7 +105,7 @@ class BackendService {
   Future<List<int>> convertMidiToWav() async {
     final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
+    final url = Uri.parse("$originUrl/midi-to-audio?midi_path=$midiPath");
 
     final response = await post(url);
 
@@ -127,21 +128,21 @@ class BackendService {
   Future<List<int>> downloadMidi() async {
     final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
     String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
+    final url = "$originUrl/download-midi?midi_path=$midiPath";
 
     return downloadFile(url);
   }
 
   Future<List<int>> downloadPdf() async {
     String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
+    final url = "$originUrl/xml-to-pdf?xml_path=$xmlPath";
 
     return downloadFile(url);
   }
 
   Future<List<int>> downloadXml() async {
     String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
+    final url = "$originUrl/download-xml?xml_path=$xmlPath";
     
     return downloadFile(url);
   }

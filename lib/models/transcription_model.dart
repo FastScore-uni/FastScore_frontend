@@ -24,7 +24,9 @@ enum TranscriptionModel{
     required this.apiPath,
   });
 
-  String get url => 'http://127.0.0.1:8000$apiPath';
+
+
+  String url(String originUrl) => originUrl + apiPath;
   // String get url => 'https://audio-to-xml-417992603605.us-central1.run.app';
 
 }
