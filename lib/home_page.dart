@@ -44,34 +44,48 @@ class _MusicPageState extends State<MusicPage> {
   Duration _playbackPosition = Duration.zero;
   Duration _playbackDuration = Duration.zero;
 
+  StreamSubscription? _stateSubscription;
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _durationSubscription;
+  StreamSubscription? _completeSubscription;
+
   @override
   void initState() {
     super.initState();
 
-    _audioPlayer.onPlayerStateChanged.listen((state) {
-      setState(() {
-        _isPlaying = state == PlayerState.playing;
-      });
+    _stateSubscription = _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
     });
 
-    _audioPlayer.onPositionChanged.listen((position) {
-      setState(() {
-        _playbackPosition = position;
-      });
+    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
+      if (mounted) {
+        setState(() {
+          _playbackPosition = position;
+        });
+      }
     });
 
-    _audioPlayer.onDurationChanged.listen((duration) {
-      setState(() {
-        _playbackDuration = duration;
-      });
+    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
+      if (mounted) {
+        setState(() {
+          _playbackDuration = duration;
+        });
+      }
     });
 
-    _audioPlayer.onPlayerComplete.listen((event) {
-      setState(() {
-        _isPlaying = false;
-        _playbackPosition = Duration.zero;
-      });
+    _completeSubscription = _audioPlayer.onPlayerComplete.listen((event) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _playbackPosition = Duration.zero;
+        });
+      }
     });
+
   }
 
   @override
@@ -81,6 +95,12 @@ class _MusicPageState extends State<MusicPage> {
     _recorder.dispose();
     _audioPlayer.dispose();
     _durationStreamController.close();
+
+    _stateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
+    _completeSubscription?.cancel();
+
     super.dispose();
   }
 
@@ -150,13 +170,15 @@ class _MusicPageState extends State<MusicPage> {
 
         await _recorder.start(config, path: path);
 
-        setState(() {
-          _isRecording = true;
-          _recordDuration = Duration.zero;
-          _isDataReady = false;
-          _audioBytes = null;
-          _isPaused = false;
-        });
+        if (mounted){
+          setState(() {
+            _isRecording = true;
+            _recordDuration = Duration.zero;
+            _isDataReady = false;
+            _audioBytes = null;
+            _isPaused = false;
+          });
+        }
         _stopwatch.reset();
         _startTimer();
         debugPrint("Start recording...");
@@ -184,7 +206,9 @@ class _MusicPageState extends State<MusicPage> {
     final String? path = await _recorder.stop();
 
     if (path == null) {
-      setState(() { _isRecording = false; _isDataReady = false; });
+      if (mounted){
+        setState(() { _isRecording = false; _isDataReady = false; });
+      }
       debugPrint("Nagranie zatrzymane, błąd zapisu pliku.");
       return;
     }
@@ -211,14 +235,15 @@ class _MusicPageState extends State<MusicPage> {
     catch (e) {
       debugPrint("Błąd wczytywania audio do pamięci: $e");
     }
-
-    setState(() {
-      _isRecording = false;
-      _audioBytes = loadedBytes;
-      _isDataReady = loadedBytes != null;
-      _isPaused = false;
-      _playbackDuration = _recordDuration;
-    });
+    if (mounted){
+      setState(() {
+        _isRecording = false;
+        _audioBytes = loadedBytes;
+        _isDataReady = loadedBytes != null;
+        _isPaused = false;
+        _playbackDuration = _recordDuration;
+      });
+    }
 
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
@@ -232,7 +257,9 @@ class _MusicPageState extends State<MusicPage> {
       await _recorder.pause();
       _stopwatch.stop();
       _stopTimer();
-      setState(() => _isPaused = true);
+      if (mounted){
+        setState(() => _isPaused = true);
+      }
       debugPrint("Pauzowanie nagrywania...");
     } catch (e) {
       debugPrint("Błąd pauzowania nagrania: $e");
@@ -246,7 +273,9 @@ class _MusicPageState extends State<MusicPage> {
       await _recorder.resume();
       _stopwatch.start();
       _startTimer();
-      setState(() => _isPaused = false);
+      if (mounted){
+        setState(() => _isPaused = false);
+      }
       debugPrint("Wznawianie nagrywania...");
     } catch (e) {
       debugPrint("Błąd wznawiania nagrywania: $e");
@@ -263,14 +292,16 @@ class _MusicPageState extends State<MusicPage> {
       _durationStreamController.add(Duration.zero);
     }
 
-    setState(() {
-      _isRecording = false;
-      _isPaused = false;
-      _isDataReady = false;
-      _audioBytes = null;
-      _playbackPosition = Duration.zero;
-      _titleController.clear();
-    });
+    if (mounted){
+      setState(() {
+        _isRecording = false;
+        _isPaused = false;
+        _isDataReady = false;
+        _audioBytes = null;
+        _playbackPosition = Duration.zero;
+        _titleController.clear();
+      });
+    }
   }
 
   Future<void> _togglePlayback() async {
@@ -289,9 +320,11 @@ class _MusicPageState extends State<MusicPage> {
   void _handleFileDropped(String fileName, List<int> fileData) {
     _resetRecording();
     BackendService().setAudioFile(fileName, fileData);
-    setState(() {
-      _isFileDropped = true;
-    });
+    if (mounted){
+      setState(() {
+        _isFileDropped = true;
+      });
+    }
     debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
   }
 
@@ -303,15 +336,19 @@ class _MusicPageState extends State<MusicPage> {
   }
 
   void _handleFileDeleted() {
-    setState(() {
-      _isFileDropped = false;
-    });
+    if (mounted){
+      setState(() {
+        _isFileDropped = false;
+      });
+    }
   }
 
   void _handleSelectedModel(TranscriptionModel newModel){
-    setState(() {
-      _selectedModel = newModel;
-    });
+    if (mounted){
+      setState(() {
+        _selectedModel = newModel;
+      });
+    }
     debugPrint('Wybrany model: ${_selectedModel.displayName}');
   }
 
@@ -325,7 +362,7 @@ class _MusicPageState extends State<MusicPage> {
           child: Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 600),
-              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -352,7 +389,11 @@ class _MusicPageState extends State<MusicPage> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // File drop zone
+                  Column(
+                    children: [
+
+                    ],
+                  ),
                   SizedBox(
                     height: isMobile ? 200 : 250,
                     child: FileDropZone(
@@ -398,6 +439,7 @@ class _MusicPageState extends State<MusicPage> {
                       onModelSelected: _handleSelectedModel
                   ),
                   const SizedBox(height: 32),
+
 
                   FilledButton.icon(
                     onPressed: _showNotes,
