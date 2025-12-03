@@ -89,5 +89,3 @@ class HtmlWidgetStateStub extends State<HtmlWidget> {
     return Text("Unsupposrted platform");
   }
 }
-
-

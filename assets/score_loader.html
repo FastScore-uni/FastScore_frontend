@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: auto; 
+    }
+    #notation svg {
+      width: 100%;
+      height: auto;
+    }
+  </style>
   <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js"></script>
   <style>
     body { margin: 0; padding: 0;
@@ -9,24 +21,28 @@
 </head>
 <body>
   <div id="notation"></div>
+
   <script>
-    // Flutter will inject MUSICXML_DATA later
     const data = `{{MUSICXML_DATA}}`;
-    document.addEventListener("DOMContentLoaded", (event) => {
-      verovio.module.onRuntimeInitialized = () => {
-        let tk = new verovio.toolkit();
-        console.log("Verovio has loaded!");
 
+    verovio.module.onRuntimeInitialized = () => {
+      const tk = new verovio.toolkit();
 
-        try {
-          let svg = tk.renderData(data, {});
-          document.getElementById("notation").innerHTML = svg;
-        } catch (err) {
-          console.error("Verovio error:", err);
-        }
+      tk.setOptions({
+        scale: 40,
+        adjustPageWidth: true,
+        footer: "none",
+        header: "none",
+      });
+
+      try {
+        const svg = tk.renderData(data, {});
+        document.getElementById("notation").innerHTML = svg;
+      } catch (e) {
+        document.getElementById("notation").innerHTML =
+          "<p style='color:red;'>Render error: " + e + "</p>";
       }
-    });
-
+    };
   </script>
 </body>
 </html>
