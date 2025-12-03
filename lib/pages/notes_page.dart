@@ -33,7 +33,7 @@ class _NotesPageState extends State<NotesPage> {
     @override
     void initState() {
       super.initState();
-      _loadAudio();
+      //_loadAudio();
     }
 
   Future<void> _loadAudio() async {
