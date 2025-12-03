@@ -33,7 +33,7 @@ class _NotesPageState extends State<NotesPage> {
     @override
     void initState() {
       super.initState();
-      //_loadAudio();
+      _loadAudio();
     }
 
   Future<void> _loadAudio() async {
@@ -41,10 +41,10 @@ class _NotesPageState extends State<NotesPage> {
 
     try {
       await backend.fetchXml();
-      final wavBytes = await backend.convertMidiToWav();
+      // final wavBytes = await backend.convertMidiToWav();
 
       setState(() {
-        _audioBytes = wavBytes;
+        // _audioBytes = wavBytes;
         _loading = false;
       });
 

@@ -126,17 +126,18 @@ class BackendService {
   }
 
   Future<List<int>> convertMidiToWav() async {
-    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
+    // final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    // String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
+    // final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
 
-    final response = await post(url);
+    // final response = await post(url);
 
-    if (response.statusCode != 200) {
-      throw Exception("Błąd konwersji MIDI: ${response.statusCode}");
-    }
+    // if (response.statusCode != 200) {
+    //   throw Exception("Błąd konwersji MIDI: ${response.statusCode}");
+    // }
 
-    return response.bodyBytes;
+    // return response.bodyBytes;
+    return [];
   }
 
   Future<List<int>> downloadFile(String url) async {
@@ -149,24 +150,27 @@ class BackendService {
   }
 
   Future<List<int>> downloadMidi() async {
-    final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
+    // final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    // String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
+    // final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
 
-    return downloadFile(url);
+    // return downloadFile(url);
+    return [];
   }
 
   Future<List<int>> downloadPdf() async {
-    String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
+    // String xmlPath = "output.musicxml";
+    // final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
 
-    return downloadFile(url);
+    // return downloadFile(url);
+    return [];
   }
 
   Future<List<int>> downloadXml() async {
-    String xmlPath = "output.musicxml";
-    final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
+    // String xmlPath = "output.musicxml";
+    // final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
     
-    return downloadFile(url);
+    // return downloadFile(url);
+    return [];
   }
 }
