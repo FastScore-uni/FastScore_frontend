@@ -9,10 +9,10 @@ enum TranscriptionModel{
       description: 'Obsługuje tylko jedną linię melodyczną, ma jednak wysoką dokładność. Generowanie nut może chwilę zająć.',
       apiPath: '/convert_crepe',
   ),
-  melodyExtraction(
-    displayName: 'Melody Extraction',
-    description: 'Wyciąga z utworu polifonicznego pojedynczą linię melodyczną.',
-    apiPath: '/convert_melody_ext',
+  crepePreproc(
+    displayName: 'Crepe z preprocessingiem',
+    description: 'Idealne do przetwarzania nagrań ze słabą jakością, lub zaszumieniem. Może zniekształcić zwykłe nagrania',
+    apiPath: '/convert_crepe_preproc',
   );
 
   final String displayName;
@@ -27,6 +27,4 @@ enum TranscriptionModel{
 
 
   String url(String originUrl) => originUrl + apiPath;
-  // String get url => 'https://audio-to-xml-417992603605.us-central1.run.app';
-
 }
