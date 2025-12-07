@@ -53,9 +53,9 @@ class RecordingPanel extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
-        border: Border.all(color: colorScheme.outlineVariant, width: 1),
+        border: Border.all(color: colorScheme.outlineVariant, width: 2),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

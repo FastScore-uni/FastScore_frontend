@@ -41,17 +41,27 @@ class _AuthPage extends State<AuthPage> {
   void _switchToEmail() => setState(() => _currentView = AuthView.emailLogin);
   void _switchToSignUp() => setState(() => _currentView = AuthView.emailSignUp);
 
+  void _showErrorNotification(String errorMessage) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _signInWithEmail(BuildContext context, String email, String password) async{
     debugPrint("Logowanie przez email...");
     final repo = context.read<UserRepository>();
     try {
       await repo.signInUser(email: email, password: password);
       debugPrint("Logowanie udane");
-      if (context.mounted){
-        Navigator.of(context).pushNamed('/');
-      }
     } catch (e) {
       debugPrint("Logowanie nieudane: $e");
+      _showErrorNotification('Podano niepoprawy email lub hasło');
     }
   }
 
@@ -61,11 +71,9 @@ class _AuthPage extends State<AuthPage> {
     try {
       String login = email.split('@').first;
       await repo.createUser(email: email, password: password, login: login, phone: "");
-      if (context.mounted){
-        Navigator.of(context).pushNamed('/');
-      }
     } catch (e) {
       debugPrint("Rejestracja nieudana: $e");
+      _showErrorNotification('Email jest już używany przez inne konto');
     }
   }
 
@@ -178,7 +186,7 @@ class _AuthPage extends State<AuthPage> {
                         debugPrint('logowanie email');
                         _switchToEmail();
                       },
-                      icon: Icons.phone,
+                      icon: Icons.email,
                       label: 'Użyj emaila',
                     ),
                     SizedBox(height: 18),
