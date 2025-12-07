@@ -15,8 +15,8 @@ class BackendService {
     return _instance;
   }
 
-  final String originUrl = 'http://127.0.0.1:8000';
-  // final String originUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
+  // final String originUrl = 'http://127.0.0.1:8000';
+  final String originUrl = 'https://audio-to-xml-417992603605.us-central1.run.app';
 
 
   TranscriptionModel _currentModel = TranscriptionModel.basicPitch;
