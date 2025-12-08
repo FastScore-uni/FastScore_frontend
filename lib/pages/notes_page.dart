@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:fastscore_frontend/services/backend_service.dart';
@@ -29,6 +29,8 @@ class _NotesPageState extends State<NotesPage> {
   int _selectedDownloadIndex = 0;
   List<int>? _audioBytes;
   bool _loading = true;
+  bool _audioPlayerError = false;
+  String? _errorMessage;
 
     @override
     void initState() {
@@ -41,16 +43,29 @@ class _NotesPageState extends State<NotesPage> {
 
     try {
       await backend.fetchXml();
-      // final wavBytes = await backend.convertMidiToWav();
+      
+      List<int> wavBytes = [];
+      try {
+        wavBytes = await backend.convertMidiToWav();
+        // Check if the file is suspiciously small (e.g. < 5KB), which might indicate an error or empty file
+        if (wavBytes.length < 5 * 1024) {
+           debugPrint("Otrzymano podejrzanie mały plik WAV (${wavBytes.length} bytes). Ignorowanie.");
+           wavBytes = [];
+        }
+      } catch (e) {
+        debugPrint("Błąd konwersji MIDI: $e");
+      }
 
-      setState(() {
-        // _audioBytes = wavBytes;
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _audioBytes = wavBytes.isNotEmpty ? wavBytes : null;
+          _loading = false;
+        });
+      }
 
     } catch (e) {
       print("Błąd ładowania audio/XML: $e");
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
   
@@ -73,42 +88,29 @@ class _NotesPageState extends State<NotesPage> {
     final option = _downloadOptions[_selectedDownloadIndex];
     debugPrint('Downloading: ${option.label}');
     
-    // ---------------------------------
-    // WERSJA DLA LOKALNEGO BACKENDU
-    // ---------------------------------
-
-  // final backend = BackendService();
-  // try {
-  //   if (_selectedDownloadIndex == 0) {
-  //     final pdfBytes = await backend.downloadPdf();
-  //     await saveBytes(widget.songTitle, "pdf", pdfBytes);
-  //   } 
-  //   else if (_selectedDownloadIndex == 1) {
-  //     final xmlBytes = utf8.encode(BackendService().xmlContent);
-  //     await saveBytes(widget.songTitle, "musicxml", xmlBytes);
-  //   } 
-  //   else if (_selectedDownloadIndex == 2) {
-  //     await saveBytes(widget.songTitle, "midi", backend.midiBytes);
-  //   }
-
-  //   } catch (e) {
-  //     print("Błąd pobierania: $e");
-  //   }
-  // }
+    if (option.label == 'Pobierz PDF') {
+       try {
+         final pdfBytes = await BackendService().downloadPdf();
+         if (pdfBytes.length < 1024) {
+            throw Exception("Wygenerowany PDF jest zbyt mały (${pdfBytes.length} bytes). Prawdopodobnie wystąpił błąd.");
+         }
+         await saveBytes(widget.songTitle, "pdf", pdfBytes);
+       } catch (e) {
+         debugPrint("PDF download error: $e");
+         if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Błąd pobierania PDF: $e')),
+           );
+         }
+       }
+       return;
+    }
 
     String? url;
     if (option.label == 'Pobierz XML') {
       url = BackendService().xmlUrl;
     } else if (option.label == 'Pobierz MIDI') {
       url = BackendService().midiUrl;
-    } else if (option.label == 'Pobierz PDF') {
-       debugPrint('PDF download not yet supported');
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Pobieranie PDF nie jest jeszcze dostępne')),
-         );
-       }
-       return;
     }
 
     if (url != null && url.isNotEmpty) {
@@ -221,10 +223,63 @@ class _NotesPageState extends State<NotesPage> {
                     ),
                 ),
                 // Audio player at the bottom
-                AudioPlayerBar(
-                  songTitle: widget.songTitle,
-                  audioBytes: _audioBytes,
-                ),
+                if (!_audioPlayerError)
+                  Builder(
+                    builder: (context) {
+                      try {
+                        return AudioPlayerBar(
+                          songTitle: widget.songTitle,
+                          audioBytes: _audioBytes,
+                          audioUrl: BackendService().audioUrl.isNotEmpty ? BackendService().audioUrl : null,
+                        );
+                      } catch (e) {
+                        debugPrint('Error rendering AudioPlayerBar: $e');
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() => _audioPlayerError = true);
+                          }
+                        });
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  )
+                else
+                  Container(
+                    height: 96,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Audio player unavailable',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              _errorMessage!.length > 50 
+                                ? '${_errorMessage!.substring(0, 50)}...' 
+                                : _errorMessage!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

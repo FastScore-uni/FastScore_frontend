@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class BackendService {
   // Klasa singletonowa do komunikacji z api na backendzie
@@ -53,6 +53,7 @@ class BackendService {
     this.firestoreId = firestoreId;
     
     this.xmlContent = ''; // Clear content so it forces reload
+    this.midiBytes = []; // Clear MIDI bytes to prevent reusing old data
     this._unfetchedData = false; // Do not try to upload/convert
     this._audioFileData = []; // Clear audio data
   }
@@ -68,6 +69,7 @@ class BackendService {
         final response = await get(Uri.parse(xmlUrl));
         if (response.statusCode == 200) {
           xmlContent = response.body;
+          midiBytes = []; // Clear old MIDI bytes when loading new song
           error = '';
         } else {
           error = 'Błąd pobierania XML: ${response.statusCode}';
@@ -123,6 +125,7 @@ class BackendService {
         xmlContent = jsonResponse['xml'] as String;
         final midiB64 = jsonResponse['midi_base64'] as String;
         midiBytes = base64Decode(midiB64);
+        debugPrint("Fetched new MIDI bytes: ${midiBytes.length}");
         // xmlContent = jsonResponse['xml_content'] ?? '';
         xmlUrl = jsonResponse['xml_url'] ?? '';
         midiUrl = jsonResponse['midi_url'] ?? '';
@@ -137,18 +140,40 @@ class BackendService {
   }
 
   Future<List<int>> convertMidiToWav() async {
-    // final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    // String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    // final url = Uri.parse("http://127.0.0.1:8000/midi-to-audio?midi_path=$midiPath");
+    if (midiBytes.isEmpty) {
+       if (midiUrl.isNotEmpty) {
+          try {
+             midiBytes = await downloadFile(midiUrl);
+          } catch(e) {
+             debugPrint("Could not download MIDI for conversion: $e");
+             return [];
+          }
+       } else {
+          debugPrint("No MIDI bytes or URL available for conversion.");
+          return [];
+       }
+    }
 
-    // final response = await post(url);
+    final uri = Uri.parse('$originUrl/midi-to-audio?t=${DateTime.now().millisecondsSinceEpoch}');
+    final request = MultipartRequest('POST', uri)
+      ..files.add(
+        MultipartFile.fromBytes(
+          'midi_file',
+          midiBytes,
+          filename: 'conversion_${DateTime.now().millisecondsSinceEpoch}.mid',
+          contentType: MediaType('audio', 'midi'),
+        ),
+      );
 
-    // if (response.statusCode != 200) {
-    //   throw Exception("Błąd konwersji MIDI: ${response.statusCode}");
-    // }
+    final streamedResponse = await request.send();
+    final response = await Response.fromStream(streamedResponse);
 
-    // return response.bodyBytes;
-    return [];
+    if (response.statusCode == 200) {
+      debugPrint("Received WAV bytes: ${response.bodyBytes.length}");
+      return response.bodyBytes;
+    } else {
+      throw Exception("Błąd konwersji MIDI: ${response.statusCode} ${response.body}");
+    }
   }
 
   Future<List<int>> downloadFile(String url) async {
@@ -161,27 +186,41 @@ class BackendService {
   }
 
   Future<List<int>> downloadMidi() async {
-    // final baseName = _audioFileName.replaceAll(RegExp(r'\.[^.]+$'), '');
-    // String midiPath = "basic_pitch_output/${baseName}_basic_pitch.mid";
-    // final url = "http://127.0.0.1:8000/download-midi?midi_path=$midiPath";
-
-    // return downloadFile(url);
+    if (midiBytes.isNotEmpty) return midiBytes;
+    if (midiUrl.isNotEmpty) return downloadFile(midiUrl);
     return [];
   }
 
   Future<List<int>> downloadPdf() async {
-    // String xmlPath = "output.musicxml";
-    // final url = "http://127.0.0.1:8000/xml-to-pdf?xml_path=$xmlPath";
+    if (xmlContent.isEmpty) {
+       if (xmlUrl.isNotEmpty) {
+          final resp = await get(Uri.parse(xmlUrl));
+          if (resp.statusCode == 200) xmlContent = resp.body;
+       }
+    }
+    
+    if (xmlContent.isEmpty) return [];
 
-    // return downloadFile(url);
-    return [];
+    // Strip DOCTYPE to prevent Verovio loading issues on backend
+    final cleanXml = xmlContent.replaceAll(RegExp(r'<!DOCTYPE[^>]+>'), '');
+
+    final uri = Uri.parse('$originUrl/xml-to-pdf?t=${DateTime.now().millisecondsSinceEpoch}');
+    final request = MultipartRequest('POST', uri)
+      ..fields['xml'] = cleanXml;
+
+    final streamedResponse = await request.send();
+    final response = await Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception("Błąd generowania PDF: ${response.statusCode} ${response.body}");
+    }
   }
 
   Future<List<int>> downloadXml() async {
-    // String xmlPath = "output.musicxml";
-    // final url = "http://127.0.0.1:8000/download-xml?xml_path=$xmlPath";
-    
-    // return downloadFile(url);
+    if (xmlContent.isNotEmpty) return utf8.encode(xmlContent);
+    if (xmlUrl.isNotEmpty) return downloadFile(xmlUrl);
     return [];
   }
 
