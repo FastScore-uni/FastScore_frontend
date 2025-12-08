@@ -107,10 +107,19 @@ class _MusicPageState extends State<MusicPage> {
   void _showNotes() {
     debugPrint('Wybrany model: $_selectedModel');
     BackendService().currentModel = _selectedModel;
-    final title = _titleController.text.isEmpty
-        ? 'Utwór bez tytułu'
-        : _titleController.text;
+    
+    String title = _titleController.text;
+    if (title.isEmpty) {
+      // If title field is empty, try to use the title from BackendService (which might be the filename)
+      if (BackendService().title.isNotEmpty) {
+        title = BackendService().title;
+      } else {
+        title = 'Utwór bez tytułu';
+      }
+    }
 
+    BackendService().title = title;
+    
     Navigator.of(context).pushNamed(
       '/notes',
       arguments: {
@@ -203,6 +212,7 @@ class _MusicPageState extends State<MusicPage> {
     if (!_isRecording) return;
 
     _stopTimer();
+    _recordDuration = _stopwatch.elapsed;
     final String? path = await _recorder.stop();
 
     if (path == null) {
@@ -247,10 +257,13 @@ class _MusicPageState extends State<MusicPage> {
 
     if (_isDataReady) {
       debugPrint("Wczytano ${_audioBytes!.length} bajtów audio (List<int>). Gotowe do wysłania.");
-      BackendService().setAudioFile('recording.opus', _audioBytes!);
+      BackendService().setAudioFile('recording.opus', 
+      _audioBytes!,
+      title: _titleController.text.isEmpty ? 'Nagranie' : _titleController.text,
+      duration: _formatDuration(_recordDuration),
+      );
     }
   }
-
   Future<void> _pauseRecording() async {
     if (_isPaused) return;
     try {
@@ -279,6 +292,12 @@ class _MusicPageState extends State<MusicPage> {
       debugPrint("Wznawianie nagrywania...");
     } catch (e) {
       debugPrint("Błąd wznawiania nagrywania: $e");
+      BackendService().setAudioFile(
+        'recording.opus', 
+        _audioBytes!, 
+        title: _titleController.text.isEmpty ? 'Nagranie' : _titleController.text,
+        duration: _formatDuration(_recordDuration),
+      );
     }
   }
 
@@ -317,15 +336,49 @@ class _MusicPageState extends State<MusicPage> {
     await _audioPlayer.seek(position);
   }
 
-  void _handleFileDropped(String fileName, List<int> fileData) {
+  Future<void> _handleFileDropped(String fileName, List<int> fileData) async {
     _resetRecording();
-    BackendService().setAudioFile(fileName, fileData);
-    if (mounted){
-      setState(() {
-        _isFileDropped = true;
-      });
+    
+    // Set title from filename (without extension)
+    final title = fileName.replaceAll(RegExp(r'\.[^.]+$'), '');
+    _titleController.text = title;
+
+    String duration = "0:00";
+    try {
+      await _audioPlayer.setSource(BytesSource(Uint8List.fromList(fileData)));
+      
+      Duration? d = await _audioPlayer.getDuration();
+      
+      // If duration is null or zero, try waiting for the stream
+      if (d == null || d.inSeconds == 0) {
+        try {
+          d = await _audioPlayer.onDurationChanged.first.timeout(const Duration(milliseconds: 500));
+        } catch (e) {
+          debugPrint("Timeout waiting for duration: $e");
+        }
+      }
+
+      if (d != null && d.inSeconds > 0) {
+        duration = _formatDuration(d);
+        setState(() {
+          _playbackDuration = d!;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error getting duration: $e");
     }
-    debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów");
+
+    BackendService().setAudioFile(
+      fileName, 
+      fileData,
+      title: title,
+      duration: duration,
+    );
+    setState(() {
+      _isFileDropped = true;
+      _audioBytes = Uint8List.fromList(fileData);
+    });
+    debugPrint("Plik upuszczony: $fileName, Rozmiar: ${fileData.length} bajtów, Czas: $duration");
   }
 
   String _formatDuration(Duration d) {

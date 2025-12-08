@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:just_audio/just_audio.dart';
+import 'dart:async';
+
+// Web platform support
+import 'package:just_audio_web/just_audio_web.dart';
 
 class AudioPlayerBar extends StatefulWidget {
   final String songTitle;
   final List<int>? audioBytes;
+  final String? audioUrl;
 
   const AudioPlayerBar({
     super.key,
     required this.songTitle,
-    required this.audioBytes,
+    this.audioBytes,
+    this.audioUrl,
   });
 
   @override
@@ -28,47 +34,139 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
   @override
   void initState() {
     super.initState();
-    _loadAudio();
-  }
-
-  Future<void> _loadAudio() async {
-    if (widget.audioBytes == null) return;
-
+    
     try {
-      final uri = Uri.dataFromBytes(widget.audioBytes!,
-          mimeType: 'audio/wav');
-
-      await _player.setUrl(uri.toString());
-
+      // Set up listeners once
       _player.positionStream.listen((pos) {
-        setState(() => _position = pos);
+        if (mounted) setState(() => _position = pos);
+      }, onError: (e) {
+        debugPrint("AudioPlayerBar: Position stream error: $e");
       });
 
       _player.durationStream.listen((dur) {
-        if (dur != null) {
+        if (dur != null && mounted) {
           setState(() => _duration = dur);
         }
+      }, onError: (e) {
+        debugPrint("AudioPlayerBar: Duration stream error: $e");
       });
 
       _player.playerStateStream.listen((state) {
-        setState(() {
-          _isPlaying = state.playing;
-          _isLoading = state.processingState == ProcessingState.loading ||
-              state.processingState == ProcessingState.buffering;
-        });
+        if (mounted) {
+          setState(() {
+            _isPlaying = state.playing;
+            _isLoading = state.processingState == ProcessingState.loading ||
+                state.processingState == ProcessingState.buffering;
+          });
+        }
+        debugPrint("AudioPlayerBar: State changed - playing: ${state.playing}, processing: ${state.processingState}");
+      }, onError: (e) {
+        debugPrint("AudioPlayerBar: Player state stream error: $e");
+        if (mounted) setState(() => _isLoading = false);
       });
+      
+      _loadAudio();
+    } catch (e) {
+      debugPrint("AudioPlayerBar: Error in initState: $e");
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void didUpdateWidget(AudioPlayerBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    try {
+      if (widget.audioBytes != oldWidget.audioBytes || widget.audioUrl != oldWidget.audioUrl) {
+        _loadAudio();
+      }
+    } catch (e) {
+      debugPrint("AudioPlayerBar: Error in didUpdateWidget: $e");
+    }
+  }
+
+  Future<void> _loadAudio() async {
+    if (widget.audioBytes == null && (widget.audioUrl == null || widget.audioUrl!.isEmpty)) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      if (widget.audioBytes != null && widget.audioBytes!.isNotEmpty) {
+        debugPrint("AudioPlayerBar: Playing from bytes (size: ${widget.audioBytes!.length})");
+        
+        // Validate WAV header (first 4 bytes should be "RIFF")
+        if (widget.audioBytes!.length > 12) {
+          final header = String.fromCharCodes(widget.audioBytes!.sublist(0, 4));
+          if (header != 'RIFF') {
+            debugPrint("AudioPlayerBar: Invalid WAV file - missing RIFF header. Header: $header");
+            throw Exception('Invalid WAV file format');
+          }
+        }
+        
+        // Use just_audio's built-in byte handling (works better on web)
+        await _player.setAudioSource(
+          AudioSource.uri(
+            Uri.dataFromBytes(
+              widget.audioBytes!,
+              mimeType: 'audio/wav',
+            ),
+          ),
+        );
+        debugPrint("AudioPlayerBar: Audio source set successfully from bytes");
+      } else if (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) {
+         debugPrint("AudioPlayerBar: Playing from URL: ${widget.audioUrl}");
+         await _player.setUrl(widget.audioUrl!);
+         debugPrint("AudioPlayerBar: Audio URL set successfully");
+      } else {
+        debugPrint("AudioPlayerBar: No audio source available");
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
 
     } catch (e) {
       debugPrint("Błąd ładowania audio: $e");
+      debugPrint("Stack trace: ${StackTrace.current}");
+      if (mounted) setState(() => _isLoading = false);
+      
+      // Fallback to URL if bytes fail
+      if (widget.audioUrl != null && widget.audioUrl!.isNotEmpty && widget.audioBytes != null) {
+        debugPrint("AudioPlayerBar: Attempting fallback to URL");
+        try {
+          await _player.setUrl(widget.audioUrl!);
+        } catch (e2) {
+          debugPrint("AudioPlayerBar: Fallback also failed: $e2");
+        }
+      }
     }
   }
 
   void _togglePlayPause() {
-    if (_player.playing) {
-      _player.pause();
-    } else {
-      _player.play();
+    runZonedGuarded(() {
+      if (_player.playing) {
+        _player.pause();
+      } else {
+        _player.play();
+      }
+    }, (error, stackTrace) {
+      debugPrint("AudioPlayerBar: Error in play/pause: $error");
+      debugPrint("Stack trace: $stackTrace");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isPlaying = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    try {
+      _player.dispose();
+    } catch (e) {
+      debugPrint("AudioPlayerBar: Error in dispose: $e");
     }
+    super.dispose();
   }
 
   @override
@@ -181,7 +279,8 @@ class _AudioPlayerBarState extends State<AudioPlayerBar> {
   }
 
   String _formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return "${twoDigits(d.inMinutes)}:${twoDigits(d.inSeconds % 60)}";
+    final minutes = d.inMinutes;
+    final seconds = d.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
