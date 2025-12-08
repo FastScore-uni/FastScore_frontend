@@ -18,6 +18,7 @@ class ModelSelectionButton extends StatefulWidget {
 class _ModelSelectionButtonState extends State<ModelSelectionButton> {
   TranscriptionModel? _selectedModel;
 
+
   void _showSelectionDialog() async {
       TranscriptionModel? newModel = await showDialog<TranscriptionModel>(
       context: context,
@@ -53,12 +54,20 @@ class _ModelSelectionButtonState extends State<ModelSelectionButton> {
   }
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return FilledButton.tonalIcon(
       onPressed: _showSelectionDialog,
       icon: const Icon(Icons.keyboard_arrow_down),
       label: Text(
-        _selectedModel?.displayName ?? 'Wybierz model transkrypcji (domyślnie: Basic Pitch)',
+        _selectedModel?.displayName ?? 'Wybierz model transkrypcji\n (domyślnie: Basic Pitch)',
       ),
+        style: FilledButton.styleFrom(
+          padding: EdgeInsets.symmetric(
+            horizontal: 32,
+            vertical: isMobile ? 8 : 12,
+          ),
+        )
     );
   }
 }
