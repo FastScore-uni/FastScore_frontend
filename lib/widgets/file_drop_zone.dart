@@ -31,17 +31,21 @@ class _FileDropZoneState extends State<FileDropZone> {
   String _message = 'Przeciągnij i upuść';
   String? _fileName;
 
-  int _calculateAlpha(int baseAlpha, double ratio) {
-    return (baseAlpha * ratio).round().clamp(0, 255);
-  }
-  
-  bool _validateFileType(List<int> fileData){
-    final headerBytes = fileData.take(12).toList();
-    final mimeType = lookupMimeType('', headerBytes: headerBytes);
 
-    return mimeType == 'audio/mp3' || mimeType == 'audio/mpeg' ||
-    mimeType == 'audio/wav' || mimeType == 'audio/x-wav' || mimeType == 'audio/wave'
-     || mimeType == 'audio/mpeg3' || mimeType == 'audio/x-mpeg-3';
+  bool _validateFileType(List<int> fileData) {
+    final headerBytes = fileData.take(12).toList();
+
+    String? mimeType = lookupMimeType('', headerBytes: headerBytes);
+    debugPrint('Typ MIME wykryty : $mimeType');
+
+    const validMimeTypes = {
+      'audio/mp3',
+      'audio/mpeg',
+      'audio/wav',
+      'audio/x-wav',
+    };
+
+    return validMimeTypes.contains(mimeType);
   }
 
   bool _validateFileSize(List<int> fileData){
@@ -166,25 +170,20 @@ class _FileDropZoneState extends State<FileDropZone> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final Color borderColor = _isHighlighted ? colorScheme.primary : colorScheme.outlineVariant;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
-    final int highlightAlpha = _calculateAlpha((colorScheme.primary.a * 255.0).round() & 0xFF, 0.15);
-    final Color highlightColor = colorScheme.primary.withAlpha(highlightAlpha);
-
-    final Color borderColor = _isHighlighted ? colorScheme.primary : Colors.grey.shade400;
 
     return IgnorePointer(
       ignoring: widget.isBlocked,
       child: Container(
         width: 600,
         height: 300,
-        margin: const EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: _isHighlighted
-              ? highlightColor
-              : colorScheme.surfaceContainerHighest.withAlpha(
-              _calculateAlpha((colorScheme.surfaceContainerHighest.a * 255.0).round() & 0xFF, 0.3)
-          ),
-
+              ? colorScheme.surfaceContainerHigh
+              : colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: borderColor,
@@ -225,10 +224,10 @@ class _FileDropZoneState extends State<FileDropZone> {
                 children: [
                   Icon(
                     Icons.insert_drive_file_outlined,
-                    size: 50,
+                    size: isMobile ? 25 : 50,
                     color: colorScheme.primary,
                   ),
-                  const SizedBox(height: 10),
+                  if (!isMobile)...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
@@ -236,7 +235,8 @@ class _FileDropZoneState extends State<FileDropZone> {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: colorScheme.onSurface),
                     ),
-                  ),
+                  )
+                  ],
                   if (_message == _dragAndDropHint)
                   Column(
                     children: [

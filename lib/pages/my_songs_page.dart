@@ -10,12 +10,30 @@ import 'package:fastscore_frontend/services/backend_service.dart';
 class MySongsPage extends StatelessWidget {
   const MySongsPage({super.key});
 
-  Color _getColor(String? colorName) {
-    // Simple mapping or random if needed. 
-    // Since backend doesn't save color yet, we can use a default or hash based on title.
-    if (colorName == null) return Colors.blue.shade200;
-    // Add more logic if needed
-    return Colors.blue.shade200;
+  Color _getColor(String? colorName, String seed) {
+    final colors = [
+      Colors.red.shade200,
+      Colors.pink.shade200,
+      Colors.purple.shade200,
+      Colors.deepPurple.shade200,
+      Colors.indigo.shade200,
+      Colors.blue.shade200,
+      Colors.lightBlue.shade200,
+      Colors.cyan.shade200,
+      Colors.teal.shade200,
+      Colors.green.shade200,
+      Colors.lightGreen.shade200,
+      Colors.lime.shade200,
+      Colors.yellow.shade200,
+      Colors.amber.shade200,
+      Colors.orange.shade200,
+      Colors.deepOrange.shade200,
+      Colors.brown.shade200,
+      Colors.blueGrey.shade200,
+    ];
+    
+    // Use the seed (document ID) to deterministically pick a color
+    return colors[seed.hashCode.abs() % colors.length];
   }
 
   @override
@@ -92,7 +110,7 @@ class MySongsPage extends StatelessWidget {
                       title: data['title'] ?? 'Utwór bez tytułu',
                       duration: data['duration'] ?? '0:00',
                       format: data['format'] ?? 'MP3',
-                      color: _getColor(data['color']),
+                      color: _getColor(data['color'], doc.id),
                       isSelected: false,
                       onTap: () {
                         // Update BackendService with the selected song's data

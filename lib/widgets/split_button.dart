@@ -78,7 +78,9 @@ class _SplitButtonState extends State<SplitButton> with SingleTickerProviderStat
     final renderBox = _buttonKey.currentContext!.findRenderObject() as RenderBox;
     final size = renderBox.size;
     final theme = Theme.of(context);
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isSmall = screenWidth < 450;
     final borderRadius = isMobile ? 22.0 : 24.0;
     final height = isMobile ? 44.0 : 48.0;
 
@@ -142,18 +144,19 @@ class _SplitButtonState extends State<SplitButton> with SingleTickerProviderStat
                                         ? theme.colorScheme.primary
                                         : theme.colorScheme.onSurface,
                                   ),
-                                  const SizedBox(width: 8),
+                                  if (!isSmall) const SizedBox(width: 8),
                                 ],
-                                Text(
-                                  option.label,
-                                  style: TextStyle(
-                                    fontSize: isMobile ? 13 : 14,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurface,
+                                if (!isSmall || option.icon == null)
+                                  Text(
+                                    option.label,
+                                    style: TextStyle(
+                                      fontSize: isMobile ? 13 : 14,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      color: isSelected
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurface,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ),
@@ -173,7 +176,9 @@ class _SplitButtonState extends State<SplitButton> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isSmall = screenWidth < 380; // Hide label on very small screens
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -208,14 +213,16 @@ class _SplitButtonState extends State<SplitButton> with SingleTickerProviderStat
                         size: isMobile ? 18 : 20,
                         color: theme.colorScheme.onPrimary,
                       ),
-                      SizedBox(width: isMobile ? 6 : 8),
-                      Text(
-                        widget.label,
-                        style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: isMobile ? 13 : 14,
+                      if (!isSmall) ...[
+                        SizedBox(width: isMobile ? 6 : 8),
+                        Text(
+                          widget.label,
+                          style: (theme.textTheme.labelLarge ?? const TextStyle()).copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontSize: isMobile ? 13 : 14,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
