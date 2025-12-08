@@ -6,11 +6,12 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: auto; 
+      overflow: auto;
     }
     #notation svg {
       width: 100%;
       height: auto;
+      display: block;
     }
   </style>
   <script src="https://www.verovio.org/javascript/latest/verovio-toolkit-wasm.js"></script>
@@ -32,8 +33,17 @@
       });
 
       try {
-        const svg = tk.renderData(data, {});
-        document.getElementById("notation").innerHTML = svg;
+        tk.loadData(data);
+        const pages = tk.getPageCount();
+
+        let allSvg = "";
+        for (let p = 1; p <= pages; p++) {
+          const svg = tk.renderToSVG(p);
+          allSvg += svg;
+        }
+
+        document.getElementById("notation").innerHTML = allSvg;
+
       } catch (e) {
         document.getElementById("notation").innerHTML =
           "<p style='color:red;'>Render error: " + e + "</p>";
