@@ -2,17 +2,17 @@ enum TranscriptionModel{
   basicPitch(
     displayName: 'Basic Pitch',
     description: 'Szybkie działanie, obsługuje wiele lini melodycznych, nie zawsze jednak zwraca dokładne wyniki.',
-    apiPath: '/convert_bp',
+    apiPath: '/convert-bp',
   ),
   crepe(
       displayName: 'Crepe',
       description: 'Obsługuje tylko jedną linię melodyczną, ma jednak wysoką dokładność. Generowanie nut może chwilę zająć.',
-      apiPath: '/convert_crepe',
+      apiPath: '/convert-crepe',
   ),
   crepePreproc(
     displayName: 'Crepe z preprocessingiem',
     description: 'Idealne do przetwarzania nagrań ze słabą jakością, lub zaszumieniem. Może zniekształcić zwykłe nagrania',
-    apiPath: '/convert_crepe_preproc',
+    apiPath: '/convert-crepe-preproc',
   );
 
   final String displayName;
